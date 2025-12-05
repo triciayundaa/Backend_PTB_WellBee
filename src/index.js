@@ -1,22 +1,26 @@
 const express = require('express');
 const cors = require('cors');
+const db = require('./config/db');
 require('dotenv').config();
 
-const authRoutes = require('./routes/auth.routes');
-
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// gabungan semua route
+const routes = require('./routes');
+app.use('/api', routes);
 
 app.get('/', (req, res) => {
   res.send('WellBee API running');
 });
 
-// semua endpoint auth diawali /auth
-app.use('/auth', authRoutes);
+const fisikRoutes = require('./modules/fisik/fisik.routes');
+app.use('/api/fisik', fisikRoutes);
 
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+
