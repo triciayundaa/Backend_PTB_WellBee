@@ -3,8 +3,17 @@ const router = express.Router();
 const fisikController = require('./fisik.controller');
 const authMiddleware = require('../../auth/auth.middleware');
 
-// URL akhir: /api/fisik/olahraga
+// SPORT
 router.post('/olahraga', authMiddleware, fisikController.simpanOlahraga);
 router.get('/riwayat', authMiddleware, fisikController.getRiwayatOlahraga);
+router.delete('/olahraga/:id', authMiddleware, fisikController.hapusOlahraga);
+router.put("/olahraga/:id", authMiddleware, fisikController.updateOlahraga);
+
+// SLEEP
+router.post('/sleep', authMiddleware, fisikController.simpanTidur);
+router.get('/sleep/riwayat', authMiddleware, fisikController.getRiwayatTidur);
+// DELETE sleep by id
+router.delete('/sleep/:id', authMiddleware, fisikController.hapusTidur);
+router.put('/sleep/:id', authMiddleware, fisikController.updateTidur);
 
 module.exports = router;

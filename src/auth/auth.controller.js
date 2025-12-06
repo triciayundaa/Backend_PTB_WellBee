@@ -19,27 +19,17 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    // 1. Ambil 'email' dari input, bukan username
+    const { email, password } = req.body; 
+    
+    // 2. Validasi cek email
+    if (!email || !password) return res.status(400).json({ message: 'email and password required' });
 
-    if (!email || !password) {
-      return res.status(400).json({ message: "email and password required" });
-    }
-
-    const result = await authService.loginUser({ email, password });
-
-    return res.json({
-      message: "login success",
-      token: result.token,   // BENAR
-      user: result.user      // BENAR → punya id
-    });
-
+    // 3. Kirim object { email, password } ke service
+    const token = await authService.loginUser({ email, password });
+    
+    return res.json({ message: 'login success', token });
   } catch (err) {
-    return res.status(500).json({ message: err.message });
+    return res.status(err.status || 500).json({ message: err.message || 'internal server error' });
   }
 };
-
-
-
-
-
-

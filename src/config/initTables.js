@@ -30,6 +30,20 @@ async function createTables() {
       );
     `);
 
+    await connection.query(`
+  CREATE TABLE IF NOT EXISTS fisik_sleep (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT,
+    jamTidur VARCHAR(10),
+    jamBangun VARCHAR(10),
+    durasiTidur DOUBLE,
+    kualitasTidur INT,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`);
+
+
+
     // ==========================
     // Tabel Mental
     // ==========================
