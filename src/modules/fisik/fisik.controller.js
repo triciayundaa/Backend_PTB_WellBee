@@ -6,13 +6,15 @@
 const simpanOlahraga = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { jenisOlahraga, durasiMenit, kaloriTerbakar } = req.body;
+        const { jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal } = req.body;
 
         const hasil = await fisikService.catatOlahraga({
             userId,
             jenisOlahraga,
             durasiMenit,
-            kaloriTerbakar
+            kaloriTerbakar,
+            foto,
+            tanggal
         });
 
         res.status(201).json({ message: "Sport saved", data: hasil });
@@ -23,8 +25,20 @@ const simpanOlahraga = async (req, res) => {
 
 const getRiwayatOlahraga = async (req, res) => {
     const userId = req.user.id;
-    const data = await fisikService.getRiwayatOlahraga(userId);
-    res.json(data);
+
+    const rows = await fisikService.getRiwayatOlahraga(userId);
+
+    const formatted = rows.map(row => ({
+        id: row.id,
+        userId: row.userId,
+        jenisOlahraga: row.jenisOlahraga,
+        durasiMenit: row.durasiMenit,
+        kaloriTerbakar: row.kaloriTerbakar,
+        tanggal: row.tanggal,      // ← FIX MUNCUL TANGGAL
+        foto: row.foto
+    }));
+
+    res.json(formatted);
 };
 
 const hapusOlahraga = async (req, res) => {
@@ -64,14 +78,15 @@ const updateOlahraga = async (req, res) => {
 const simpanTidur = async (req, res) => {
     try {
         const userId = req.user.id;
-        const { jamTidur, jamBangun, durasiTidur, kualitasTidur } = req.body;
+        const { jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal } = req.body;
 
         const hasil = await fisikService.catatTidur({
             userId,
             jamTidur,
             jamBangun,
             durasiTidur,
-            kualitasTidur
+            kualitasTidur,
+            tanggal
         });
 
         res.status(201).json({ message: "Sleep saved", data: hasil });
@@ -104,7 +119,7 @@ const updateTidur = async (req, res) => {
         const userId = req.user.id;
         const sleepId = req.params.id;
 
-        const { jamTidur, jamBangun, durasiTidur, kualitasTidur } = req.body;
+        const { jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal } = req.body;
 
         const hasil = await fisikService.updateTidur({
             id: sleepId,
@@ -112,13 +127,48 @@ const updateTidur = async (req, res) => {
             jamTidur,
             jamBangun,
             durasiTidur,
-            kualitasTidur
+            kualitasTidur,
+            tanggal
         });
 
         res.status(200).json({ message: "Sleep updated", data: hasil });
     } catch (e) {
         res.status(500).json({ message: "Server error" });
     }
+};
+
+// ===================
+// WEIGHT
+// ===================
+const simpanWeight = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { beratBadan, tinggiBadan, bmi, kategori, tanggal } = req.body;
+
+    const hasil = await fisikService.catatWeight({
+      userId, beratBadan, tinggiBadan, bmi, kategori, tanggal
+    });
+
+    res.status(201).json({ message: "Weight saved", data: hasil });
+  } catch (e) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+const getRiwayatWeight = async (req, res) => {
+  const userId = req.user.id;
+  const data = await fisikService.getRiwayatWeight(userId);
+  res.json(data);
+};
+
+const hapusWeight = async (req, res) => {
+  await fisikService.hapusWeight(req.params.id, req.user.id);
+  res.json({ message: "Weight deleted" });
+};
+
+const updateWeight = async (req, res) => {
+  const hasil = await fisikService.updateWeight(req.params.id, req.body);
+  res.json({ message: "Weight updated", data: hasil });
 };
 
 module.exports = {
@@ -132,5 +182,11 @@ module.exports = {
     simpanTidur,
     getRiwayatTidur,
     hapusTidur,
-    updateTidur
+    updateTidur,
+
+    // WEIGHT
+    simpanWeight,
+    getRiwayatWeight,
+    hapusWeight,
+    updateWeight
 };

@@ -16,4 +16,10 @@ router.get('/sleep/riwayat', authMiddleware, fisikController.getRiwayatTidur);
 router.delete('/sleep/:id', authMiddleware, fisikController.hapusTidur);
 router.put('/sleep/:id', authMiddleware, fisikController.updateTidur);
 
+// WEIGHT
+router.post('/weight', authMiddleware, fisikController.simpanWeight);
+router.get('/weight/riwayat', authMiddleware, fisikController.getRiwayatWeight);
+router.delete('/weight/:id', authMiddleware, fisikController.hapusWeight);
+router.put('/weight/:id', authMiddleware, fisikController.updateWeight);
+
 module.exports = router;

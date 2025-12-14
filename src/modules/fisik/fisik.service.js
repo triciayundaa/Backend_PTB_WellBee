@@ -33,6 +33,16 @@ const updateTidur = async (data) => {
     return { id: data.id, ...data };
 };
 
+// WEIGHT
+const catatWeight = async (data) => {
+  const result = await FisikModel.createWeight(data);
+  return { id: result.insertId, ...data };
+};
+
+const getRiwayatWeight = (userId) => FisikModel.getWeightByUser(userId);
+const hapusWeight = (id, userId) => FisikModel.deleteWeight(id, userId);
+const updateWeight = (id, data) => FisikModel.updateWeight(id, data);
+
 module.exports = {
     catatOlahraga,
     getRiwayatOlahraga,
@@ -42,5 +52,11 @@ module.exports = {
     catatTidur,
     getRiwayatTidur,
     hapusTidur,
-    updateTidur
+    updateTidur,
+
+    // WEIGHT  ⬅⬅⬅ TAMBAHKAN INI
+    catatWeight,
+    getRiwayatWeight,
+    hapusWeight,
+    updateWeight
 };

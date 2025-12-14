@@ -26,10 +26,11 @@ async function createTables() {
         jenisOlahraga VARCHAR(255),
         durasiMenit INT,
         kaloriTerbakar INT,
-        tanggal DATE DEFAULT CURRENT_DATE
+        tanggal VARCHAR(20) NOT NULL,
+         foto LONGTEXT
       );
     `);
-
+    
     await connection.query(`
   CREATE TABLE IF NOT EXISTS fisik_sleep (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,11 +39,21 @@ async function createTables() {
     jamBangun VARCHAR(10),
     durasiTidur DOUBLE,
     kualitasTidur INT,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    tanggal DATE NOT NULL
   );
 `);
-
-
+    
+await connection.query(`
+      CREATE TABLE IF NOT EXISTS fisik_weight (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        beratBadan DOUBLE NOT NULL,
+        tinggiBadan DOUBLE NOT NULL,
+        bmi DOUBLE NOT NULL,
+        kategori VARCHAR(30) NOT NULL,
+        tanggal DATE NOT NULL
+      );
+    `);
 
     // ==========================
     // Tabel Mental
