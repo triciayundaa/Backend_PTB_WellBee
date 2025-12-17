@@ -71,6 +71,16 @@ const updateOlahraga = async (req, res) => {
     }
 };
 
+const getWeeklySport = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await fisikService.getWeeklySport(userId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 // ===================
 // SLEEP
@@ -137,6 +147,16 @@ const updateTidur = async (req, res) => {
     }
 };
 
+const getWeeklySleep = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await fisikService.getWeeklySleep(userId);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 // ===================
 // WEIGHT
 // ===================
@@ -177,12 +197,14 @@ module.exports = {
     getRiwayatOlahraga,
     hapusOlahraga,
     updateOlahraga,
+    getWeeklySport,
 
     // SLEEP
     simpanTidur,
     getRiwayatTidur,
     hapusTidur,
     updateTidur,
+    getWeeklySleep,
 
     // WEIGHT
     simpanWeight,

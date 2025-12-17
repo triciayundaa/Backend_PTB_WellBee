@@ -1,15 +1,55 @@
 const db = require('../../config/db');
 
 const FisikModel = {
+    
+    // ===========================================
+    // 🔥 BAGIAN PENTING (DIPERBAIKI)
+    // ===========================================
+    getSportByRange: async (userId, start, end) => {
+        // Kita gunakan db.execute agar konsisten
+        const query = `
+            SELECT WEEKDAY(tanggal) AS wd, SUM(durasiMenit) AS total
+            FROM fisik_olahraga
+            WHERE userId = ?
+              AND tanggal BETWEEN ? AND ?
+            GROUP BY wd
+        `;
+        
+        try {
+            const [rows] = await db.execute(query, [userId, start, end]);
+            return rows;
+        } catch (error) {
+            console.error("❌ ERROR SQL WEEKLY:", error);
+            return []; // Return array kosong jika error agar tidak crash
+        }
+    },
+
+    getSleepByRange: async (userId, start, end) => {
+        const query = `
+            SELECT WEEKDAY(tanggal) AS wd, AVG(durasiTidur) AS avg_durasi
+            FROM fisik_sleep
+            WHERE userId = ?
+              AND tanggal BETWEEN ? AND ?
+            GROUP BY wd
+        `;
+        try {
+            const [rows] = await db.execute(query, [userId, start, end]);
+            return rows;
+        } catch (error) {
+            console.error("❌ ERROR SQL WEEKLY SLEEP:", error);
+            return [];
+        }
+    },
+
     // ===================
-    // SPORT
+    // SPORT (Create, Get, Delete, Update)
     // ===================
     createSport: async ({ userId, jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal }) => {
         const query = `
             INSERT INTO fisik_olahraga (userId, jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal)
             VALUES (?, ?, ?, ?, ?, ?)
         `;
-        const [result] = await db.execute(query, [userId, jenisOlahraga, durasiMenit, kaloriTerbakar,foto, tanggal]);
+        const [result] = await db.execute(query, [userId, jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal]);
         return result;
     },
 
@@ -20,130 +60,100 @@ const FisikModel = {
         );
         return rows;
     },
-    deleteSport: async (id, userId) => {
-    const [result] = await db.execute(
-        `DELETE FROM fisik_olahraga WHERE id = ? AND userId = ?`,
-        [id, userId]
-    );
-    return result;
-},
 
-updateSport: async (id, { jenisOlahraga, durasiMenit, kaloriTerbakar }) => {
-    const query = `
-        UPDATE fisik_olahraga
-        SET jenisOlahraga = ?, durasiMenit = ?, kaloriTerbakar = ?
-        WHERE id = ?
-    `;
-    const [result] = await db.execute(query, [
-        jenisOlahraga,
-        durasiMenit,
-        kaloriTerbakar,
-        id
-    ]);
-    return result;
-},
+    deleteSport: async (id, userId) => {
+        const [result] = await db.execute(
+            `DELETE FROM fisik_olahraga WHERE id = ? AND userId = ?`,
+            [id, userId]
+        );
+        return result;
+    },
+
+    updateSport: async (id, { jenisOlahraga, durasiMenit, kaloriTerbakar }) => {
+        const query = `
+            UPDATE fisik_olahraga
+            SET jenisOlahraga = ?, durasiMenit = ?, kaloriTerbakar = ?
+            WHERE id = ?
+        `;
+        const [result] = await db.execute(query, [jenisOlahraga, durasiMenit, kaloriTerbakar, id]);
+        return result;
+    },
 
     // ===================
     // SLEEP
     // ===================
     createSleep: async ({ userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal }) => {
-    const query = `
-        INSERT INTO fisik_sleep (
-            userId,
-            jamTidur,
-            jamBangun,
-            durasiTidur,
-            kualitasTidur,
-            tanggal
-        ) VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    
-    const [result] = await db.execute(query, [
-        userId,
-        jamTidur,
-        jamBangun,
-        durasiTidur,
-        kualitasTidur,
-        tanggal
-    ]);
+        const query = `
+            INSERT INTO fisik_sleep (userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const [result] = await db.execute(query, [userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal]);
+        return result;
+    },
 
-    return result;
-},
     deleteSleep: async (id, userId) => {
-    const [result] = await db.execute(
-        `DELETE FROM fisik_sleep WHERE id = ? AND userId = ?`,
-        [id, userId]
-    );
-    return result;
-},
+        const [result] = await db.execute(
+            `DELETE FROM fisik_sleep WHERE id = ? AND userId = ?`,
+            [id, userId]
+        );
+        return result;
+    },
+
     updateSleep: async ({ id, userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal }) => {
-    const query = `
-        UPDATE fisik_sleep
-        SET jamTidur = ?, jamBangun = ?, durasiTidur = ?, kualitasTidur = ?, tanggal=?
-        WHERE id = ? AND userId = ?
-    `;
-
-    const [result] = await db.execute(query, [
-        jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal, id, userId
-    ]);
-
-    return result;
-},
+        const query = `
+            UPDATE fisik_sleep
+            SET jamTidur = ?, jamBangun = ?, durasiTidur = ?, kualitasTidur = ?, tanggal=?
+            WHERE id = ? AND userId = ?
+        `;
+        const [result] = await db.execute(query, [jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal, id, userId]);
+        return result;
+    },
 
     getSleepByUser: async (userId) => {
-    const [rows] = await db.execute(
-        `SELECT * FROM fisik_sleep WHERE userId = ? ORDER BY tanggal DESC`,
-        [userId]
-    );
-    return rows;
-}, 
+        const [rows] = await db.execute(
+            `SELECT * FROM fisik_sleep WHERE userId = ? ORDER BY tanggal DESC`,
+            [userId]
+        );
+        return rows;
+    },
 
-// ===================
-// WEIGHT
-// ===================
-createWeight: async ({ userId, beratBadan, tinggiBadan, bmi, kategori, tanggal }) => {
-  const query = `
-    INSERT INTO fisik_weight
-    (userId, beratBadan, tinggiBadan, bmi, kategori, tanggal)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
-  const [result] = await db.execute(query, [
-    userId, beratBadan, tinggiBadan, bmi, kategori, tanggal
-  ]);
-  return result;
-},
+    // ===================
+    // WEIGHT
+    // ===================
+    createWeight: async ({ userId, beratBadan, tinggiBadan, bmi, kategori, tanggal }) => {
+        const query = `
+            INSERT INTO fisik_weight (userId, beratBadan, tinggiBadan, bmi, kategori, tanggal)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+        const [result] = await db.execute(query, [userId, beratBadan, tinggiBadan, bmi, kategori, tanggal]);
+        return result;
+    },
 
-getWeightByUser: async (userId) => {
-  const [rows] = await db.execute(
-    `SELECT * FROM fisik_weight WHERE userId = ? ORDER BY tanggal DESC`,
-    [userId]
-  );
-  return rows;
-},
+    getWeightByUser: async (userId) => {
+        const [rows] = await db.execute(
+            `SELECT * FROM fisik_weight WHERE userId = ? ORDER BY tanggal DESC`,
+            [userId]
+        );
+        return rows;
+    },
 
-deleteWeight: async (id, userId) => {
-  const [result] = await db.execute(
-    `DELETE FROM fisik_weight WHERE id = ? AND userId = ?`,
-    [id, userId]
-  );
-  return result;
-},
+    deleteWeight: async (id, userId) => {
+        const [result] = await db.execute(
+            `DELETE FROM fisik_weight WHERE id = ? AND userId = ?`,
+            [id, userId]
+        );
+        return result;
+    },
 
-updateWeight: async (id, data) => {
-  const query = `
-    UPDATE fisik_weight
-    SET beratBadan=?, tinggiBadan=?, bmi=?, kategori=?, tanggal=?
-    WHERE id=?
-  `;
-  const [result] = await db.execute(query, [
-    data.beratBadan,
-    data.tinggiBadan,
-    data.bmi,
-    data.kategori,
-    data.tanggal,
-    id
-  ]);
-  return result;
-},
+    updateWeight: async (id, data) => {
+        const query = `
+            UPDATE fisik_weight
+            SET beratBadan=?, tinggiBadan=?, bmi=?, kategori=?, tanggal=?
+            WHERE id=?
+        `;
+        const [result] = await db.execute(query, [data.beratBadan, data.tinggiBadan, data.bmi, data.kategori, data.tanggal, id]);
+        return result;
+    }
 };
+
 module.exports = FisikModel;

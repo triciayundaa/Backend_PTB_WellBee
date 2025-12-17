@@ -5,16 +5,17 @@ async function createTables() {
   try {
     const connection = await pool.getConnection();
 
+    // 1. Tabel Users (Induk)
     await connection.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255),
-    email VARCHAR(255) UNIQUE,
-    password VARCHAR(255),
-    phone VARCHAR(50),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255),
+        email VARCHAR(255) UNIQUE,
+        password VARCHAR(255),
+        phone VARCHAR(50),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
     // ==========================
     // Tabel Fisik Olahraga
@@ -26,24 +27,32 @@ async function createTables() {
         jenisOlahraga VARCHAR(255),
         durasiMenit INT,
         kaloriTerbakar INT,
-        tanggal VARCHAR(20) NOT NULL,
-         foto LONGTEXT
+        tanggal DATE NOT NULL,
+        foto LONGTEXT,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
-    
+
+    // ==========================
+    // Tabel Fisik Sleep
+    // ==========================
     await connection.query(`
-  CREATE TABLE IF NOT EXISTS fisik_sleep (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    userId INT,
-    jamTidur VARCHAR(10),
-    jamBangun VARCHAR(10),
-    durasiTidur DOUBLE,
-    kualitasTidur INT,
-    tanggal DATE NOT NULL
-  );
-`);
-    
-await connection.query(`
+      CREATE TABLE IF NOT EXISTS fisik_sleep (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT,
+        jamTidur VARCHAR(10),
+        jamBangun VARCHAR(10),
+        durasiTidur DOUBLE,
+        kualitasTidur INT,
+        tanggal DATE NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    // ==========================
+    // Tabel Fisik Weight
+    // ==========================
+    await connection.query(`
       CREATE TABLE IF NOT EXISTS fisik_weight (
         id INT AUTO_INCREMENT PRIMARY KEY,
         userId INT NOT NULL,
@@ -51,7 +60,8 @@ await connection.query(`
         tinggiBadan DOUBLE NOT NULL,
         bmi DOUBLE NOT NULL,
         kategori VARCHAR(30) NOT NULL,
-        tanggal DATE NOT NULL
+        tanggal DATE NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
 
@@ -63,12 +73,13 @@ await connection.query(`
         id INT AUTO_INCREMENT PRIMARY KEY,
         userId INT,
         isiJurnal TEXT,
-        tanggal DATE DEFAULT CURRENT_DATE
+        tanggal DATE DEFAULT CURRENT_DATE,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
 
     // ==========================
-    // Tabel Edukasi
+    // Tabel Edukasi (Artikel biasanya admin, jadi opsional pakai FK user)
     // ==========================
     await connection.query(`
       CREATE TABLE IF NOT EXISTS edukasi_artikel (

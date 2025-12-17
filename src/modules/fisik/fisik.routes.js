@@ -8,6 +8,7 @@ router.post('/olahraga', authMiddleware, fisikController.simpanOlahraga);
 router.get('/riwayat', authMiddleware, fisikController.getRiwayatOlahraga);
 router.delete('/olahraga/:id', authMiddleware, fisikController.hapusOlahraga);
 router.put("/olahraga/:id", authMiddleware, fisikController.updateOlahraga);
+router.get("/weekly", authMiddleware, fisikController.getWeeklySport);
 
 // SLEEP
 router.post('/sleep', authMiddleware, fisikController.simpanTidur);
@@ -15,6 +16,7 @@ router.get('/sleep/riwayat', authMiddleware, fisikController.getRiwayatTidur);
 // DELETE sleep by id
 router.delete('/sleep/:id', authMiddleware, fisikController.hapusTidur);
 router.put('/sleep/:id', authMiddleware, fisikController.updateTidur);
+router.get("/sleep/weekly", authMiddleware, fisikController.getWeeklySleep);
 
 // WEIGHT
 router.post('/weight', authMiddleware, fisikController.simpanWeight);
