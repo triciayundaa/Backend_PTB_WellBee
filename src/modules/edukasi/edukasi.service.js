@@ -17,29 +17,35 @@ async function getMyArticles(userId) {
   return model.getUserArticles(userId);
 }
 
+/**
+ * Buat artikel user baru.
+ * Sekarang bisa terima status dari Android:
+ *  - "draft"
+ *  - "uploaded"
+ */
 async function createMyArticle(userId, payload) {
-  // Terima payload dari Android (nama field sesuai body JSON)
+  // Terima payload dari Android
   const {
     judul,
     isi,
     kategori,
     waktu_baca,
     tag,
-    gambar_url = null     // 🔹 URL gambar dari Android (optional)
+    gambar_url = null,
+    status = 'uploaded'   // ⬅️ default kalau tidak dikirim
   } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
   }
 
-  // Mapping ke field tabel
   const title = judul;
   const content = isi;
   const category = kategori;
   const readTime = waktu_baca;
 
-  const status = 'uploaded'; // otomatis uploaded saat user klik Upload
-  const tanggalUpload = new Date();
+  // hanya isi tanggal_upload jika status = uploaded
+  const tanggalUpload = (status === 'uploaded') ? new Date() : null;
 
   const articleId = await model.insertUserArticle({
     userId,
@@ -50,37 +56,46 @@ async function createMyArticle(userId, payload) {
     tag,
     status,
     tanggalUpload,
-    gambarUrl: gambar_url   // 🔹 lempar ke model
+    gambarUrl: gambar_url
   });
 
   return articleId;
 }
 
-async function updateMyArticle(userId, articleId, payload) {
-  const existing = await model.getUserArticleById(articleId, userId);
-  if (!existing) {
-    throw makeError('Artikel tidak ditemukan / bukan milik Anda', 404);
-  }
-
+async function updateMyArticle(userId, articleId, payload, file) {
   const {
-    title = existing.judul,
-    content = existing.isi,
-    category = existing.kategori,
-    readTime = existing.waktuBaca,
-    tag = existing.tag,
-    gambar_url = existing.gambarUrl || null   // 🔹 kalau ada gambar baru boleh override
+    judul,
+    isi,
+    kategori,
+    waktu_baca,
+    tag
   } = payload;
 
-  await model.updateUserArticle({
-    articleId,
-    userId,
-    title,
-    content,
-    category,
-    readTime,
-    tag,
-    gambarUrl: gambar_url
-  });
+  if (!judul || !isi) {
+    throw makeError('Judul dan isi wajib diisi', 400);
+  }
+
+  const dataToUpdate = {
+    title: judul,
+    content: isi,
+    category: kategori,
+    read_time: waktu_baca,
+    tag: tag
+  };
+
+
+  if (file) {
+    const gambarUrl = `/uploads/${file.filename}`;
+    dataToUpdate.gambar_url = gambarUrl;
+  }
+
+  const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
+
+  if (!updated) {
+    throw makeError('Artikel tidak ditemukan atau bukan milik Anda', 404);
+  }
+
+  return updated;
 }
 
 async function updateMyArticleStatus(userId, articleId, status) {
@@ -97,6 +112,10 @@ async function updateMyArticleStatus(userId, articleId, status) {
   if (status === 'uploaded' && !tanggalUpload) {
     tanggalUpload = new Date();
   }
+  if (status !== 'uploaded') {
+    // kalau status draft / canceled → tanggal_upload boleh null
+    tanggalUpload = null;
+  }
 
   await model.updateUserArticleStatus({
     articleId,
@@ -105,6 +124,14 @@ async function updateMyArticleStatus(userId, articleId, status) {
     tanggalUpload
   });
 }
+
+async function removeMyArticle(userId, articleId) {
+  const result = await model.deleteUserArticle(userId, articleId);
+  if (result.affectedRows === 0) {
+    throw makeError('Artikel tidak ditemukan / bukan milik Anda', 404);
+  }
+}
+
 
 /** BOOKMARKS */
 async function getBookmarks(userId) {
@@ -139,12 +166,18 @@ async function markBookmarkAsRead(userId, bookmarkId) {
   }
 }
 
+
+
 module.exports = {
+  // artikel
   getPublicArticles,
   getMyArticles,
   createMyArticle,
   updateMyArticle,
   updateMyArticleStatus,
+  removeMyArticle,
+
+  // bookmark
   getBookmarks,
   addBookmark,
   removeBookmark,

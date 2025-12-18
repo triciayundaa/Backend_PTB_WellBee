@@ -44,6 +44,9 @@ app.use('/api/edukasi', edukasiRoutes);
 const uploadRoutes = require('./modules/upload/upload.routes');
 app.use('/api/upload', uploadRoutes);
 
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+
 // ========================
 //  Root endpoint
 // ========================

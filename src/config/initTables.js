@@ -90,9 +90,11 @@ await connection.query(`
     artikelId INT NOT NULL,
     jenis ENUM('static', 'user') NOT NULL,
     sudah_dibaca TINYINT(1) DEFAULT 0,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userId) REFERENCES users(id)
   );
 `);
+
 
 
     connection.release();

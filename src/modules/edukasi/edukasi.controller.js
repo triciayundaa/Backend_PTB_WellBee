@@ -53,29 +53,37 @@ async function createMyArticle(req, res) {
   }
 }
 
-/** 4) PUT /api/edukasi/my-articles/:id */
+/** 4) PUT /api/edukasi/my-articles/:id
+ *    Update judul, isi, kategori, waktu_baca, tag, dan optional gambar baru
+ */
 async function updateMyArticle(req, res) {
   try {
     const userId = req.user.id;
     const articleId = req.params.id;
-    await service.updateMyArticle(userId, articleId, req.body);
-    res.json({ message: 'Artikel berhasil diupdate' });
+    const file = req.file || null;    // dari multer (upload.single('gambar'))
+    const payload = req.body;         // judul, isi, kategori, waktu_baca, tag
+
+    const result = await service.updateMyArticle(userId, articleId, payload, file);
+
+    res.json({
+      message: 'Artikel berhasil diperbarui',
+      data: result
+    });
   } catch (err) {
     handleError(res, err, 'updateMyArticle');
   }
 }
 
-/** 5) PATCH /api/edukasi/my-articles/:id/status */
-async function updateMyArticleStatus(req, res) {
+/** 5) DELETE /api/edukasi/my-articles/:id */
+async function removeMyArticle(req, res) {
   try {
     const userId = req.user.id;
     const articleId = req.params.id;
-    const { status } = req.body;
 
-    await service.updateMyArticleStatus(userId, articleId, status);
-    res.json({ message: 'Status artikel berhasil diubah' });
+    await service.removeMyArticle(userId, articleId);
+    res.json({ message: 'Artikel berhasil dihapus' });
   } catch (err) {
-    handleError(res, err, 'updateMyArticleStatus');
+    handleError(res, err, 'removeMyArticle');
   }
 }
 
@@ -132,6 +140,29 @@ async function markBookmarkAsRead(req, res) {
   }
 }
 
+/** 10) PATCH /api/edukasi/my-articles/:id/status
+ *      Ubah status: draft / uploaded / canceled
+ */
+async function updateMyArticleStatus(req, res) {
+  try {
+    const userId = req.user.id;
+    const articleId = req.params.id;
+    const { status } = req.body; // { status: "draft" | "uploaded" | "canceled" }
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status wajib diisi' });
+    }
+
+    await service.updateMyArticleStatus(userId, articleId, status);
+
+    return res.json({
+      message: 'Status artikel berhasil diperbarui'
+    });
+  } catch (err) {
+    handleError(res, err, 'updateMyArticleStatus');
+  }
+}
+
 module.exports = {
   getCategories,
   getPublicArticles,
@@ -142,5 +173,6 @@ module.exports = {
   getBookmarks,
   addBookmark,
   deleteBookmark,
-  markBookmarkAsRead
+  markBookmarkAsRead,
+  removeMyArticle
 };
