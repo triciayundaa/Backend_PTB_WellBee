@@ -17,6 +17,7 @@ exports.login = async (req, res) => {
         const { email, password } = req.body; 
         if (!email || !password) return res.status(400).json({ message: 'email and password required' });
 
+        // Kita butuh User object (ID, dll) untuk Android
         const { token, user } = await authService.loginUser({ email, password });
 
         return res.json({ 
@@ -43,7 +44,6 @@ exports.getMe = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Response dikirim murni UserData sesuai UserData di ApiService Android
         return res.json(user); 
     } catch (err) {
         return res.status(500).json({ message: 'Internal server error' });
@@ -52,7 +52,6 @@ exports.getMe = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        // Log untuk melihat apa yang dikirim Android
         console.log("Body yang diterima backend:", req.body); 
 
         const { email, newPassword } = req.body;

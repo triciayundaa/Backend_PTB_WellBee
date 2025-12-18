@@ -12,28 +12,30 @@ app.use(express.json());
 // ========================
 //  Static folder untuk file upload
 // ========================
+// Folder ini penting agar gambar artikel bisa dibuka di HP
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ========================
 //  Create tables database
 // ========================
 const createTables = require('./config/initTables');
+// Jalankan fungsi createTables untuk memastikan database siap
 createTables();
 
 // ========================
-//  Global Routes Wrapper 
+//  Global Routes (Biasanya Auth)
 // ========================
 const routes = require('./routes');
 app.use('/api', routes);
 
 // ========================
-//  Route Fisik
+//  Route Fisik (PUNYA FATHIYA)
 // ========================
 const fisikRoutes = require('./modules/fisik/fisik.routes');
 app.use('/api/fisik', fisikRoutes);
 
 // ========================
-//  Route Edukasi
+//  Route Edukasi (PUNYA KAMU)
 // ========================
 const edukasiRoutes = require('./modules/edukasi/edukasi.routes');
 app.use('/api/edukasi', edukasiRoutes);
@@ -44,18 +46,15 @@ app.use('/api/edukasi', edukasiRoutes);
 const uploadRoutes = require('./modules/upload/upload.routes');
 app.use('/api/upload', uploadRoutes);
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-
 // ========================
-//  Root endpoint
+//  Root endpoint (Cek Server Jalan)
 // ========================
 app.get('/', (req, res) => {
   res.send('WellBee API running');
 });
 
 // ========================
-//  Start Server
+//  Jalankan Server
 // ========================
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
