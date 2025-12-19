@@ -13,7 +13,7 @@ app.use(express.json());
 //  Static folder untuk file upload
 // ========================
 // Folder ini penting agar gambar artikel bisa dibuka di HP
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ========================
 //  Create tables database
@@ -44,7 +44,7 @@ app.use('/api/edukasi', edukasiRoutes);
 //  Route Upload (Gambar Artikel)
 // ========================
 const uploadRoutes = require('./modules/upload/upload.routes');
-app.use('/api/upload', uploadRoutes);
+app.use('/api/upload', uploadRoutes.router);
 
 // ========================
 //  Root endpoint (Cek Server Jalan)

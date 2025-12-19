@@ -14,41 +14,28 @@ async function query(sql, params = []) {
 /* =====================================================================
  *  ARTIKEL PUBLIK (static + user uploaded)
  * ===================================================================== */
+// Di edukasi.model.js
+
 async function getPublicArticles() {
   return query(`
-    SELECT 
-      a.id,
-      a.judul,
-      a.isi,
-      a.kategori,
-      a.waktu_baca   AS waktuBaca,
-      a.tag,
-      a.gambar_url   AS gambarUrl,
-      a.tanggal,
-      NULL           AS authorName,   
-      'static'       AS jenis,
-      NULL           AS userId
-    FROM edukasi_artikel a
+    SELECT * FROM (
+        SELECT 
+          a.id, a.judul, a.isi, a.kategori, a.waktu_baca AS waktuBaca,
+          a.tag, a.gambar_url AS gambarUrl, a.tanggal,
+          NULL AS authorName, 'static' AS jenis, NULL AS userId
+        FROM edukasi_artikel a
 
-    UNION ALL
+        UNION ALL
 
-    SELECT
-      ua.id,
-      ua.judul,
-      ua.isi,
-      ua.kategori,
-      ua.waktu_baca      AS waktuBaca,
-      ua.tag,
-      ua.gambar_url      AS gambarUrl,
-      ua.tanggal_upload  AS tanggal,
-      u.username         AS authorName, 
-      'user'             AS jenis,
-      ua.userId          AS userId
-    FROM user_artikel ua
-    JOIN users u ON ua.userId = u.id
-    WHERE ua.status = 'uploaded'
-
-    ORDER BY tanggal DESC
+        SELECT
+          ua.id, ua.judul, ua.isi, ua.kategori, ua.waktu_baca AS waktuBaca,
+          ua.tag, ua.gambar_url AS gambarUrl, ua.tanggal_upload AS tanggal,
+          u.username AS authorName, 'user' AS jenis, ua.userId AS userId
+        FROM user_artikel ua
+        JOIN users u ON ua.userId = u.id
+        WHERE ua.status = 'uploaded'
+    ) AS gabungan
+    ORDER BY tanggal DESC, id DESC 
   `);
 }
 
@@ -218,11 +205,12 @@ async function deleteUserArticle(userId, articleId) {
 }
 
 /* =====================================================================
- *  BOOKMARKS
+ * BOOKMARKS (PERBAIKAN UTAMA)
  * ===================================================================== */
 async function getBookmarks(userId) {
   return query(
     `
+    /* 1. Ambil Bookmark dari Artikel Statis */
     SELECT
       b.id            AS bookmarkId,
       b.artikelId,
@@ -235,14 +223,14 @@ async function getBookmarks(userId) {
       a.tag,
       a.gambar_url    AS gambarUrl,
       a.tanggal,
-      NULL            AS userId,
       NULL            AS authorName
     FROM edukasi_bookmark b
-    JOIN edukasi_artikel a ON b.artikelId = a.id
+    INNER JOIN edukasi_artikel a ON b.artikelId = a.id
     WHERE b.userId = ? AND b.jenis = 'static'
 
     UNION ALL
 
+    /* 2. Ambil Bookmark dari Artikel User (Hanya yang statusnya 'uploaded') */
     SELECT
       b.id            AS bookmarkId,
       b.artikelId,
@@ -251,16 +239,15 @@ async function getBookmarks(userId) {
       ua.judul,
       ua.isi,
       ua.kategori,
-      ua.waktu_baca    AS waktuBaca,
+      ua.waktu_baca   AS waktuBaca,
       ua.tag,
-      ua.gambar_url    AS gambarUrl,
+      ua.gambar_url   AS gambarUrl,
       ua.tanggal_upload AS tanggal,
-      ua.userId,
       u.username        AS authorName
     FROM edukasi_bookmark b
-    JOIN user_artikel ua ON b.artikelId = ua.id
-    JOIN users u ON ua.userId = u.id
-    WHERE b.userId = ? AND b.jenis = 'user'
+    INNER JOIN user_artikel ua ON b.artikelId = ua.id
+    INNER JOIN users u ON ua.userId = u.id
+    WHERE b.userId = ? AND b.jenis = 'user' AND ua.status = 'uploaded'
 
     ORDER BY bookmarkId DESC
     `,
@@ -270,62 +257,26 @@ async function getBookmarks(userId) {
 
 async function findBookmark(userId, artikelId, jenis) {
   const rows = await query(
-    `
-      SELECT id
-      FROM edukasi_bookmark
-      WHERE userId = ? AND artikelId = ? AND jenis = ?
-    `,
+    `SELECT id FROM edukasi_bookmark WHERE userId = ? AND artikelId = ? AND jenis = ?`,
     [userId, artikelId, jenis]
   );
   return rows[0] || null;
 }
 
 async function insertBookmark(userId, artikelId, jenis) {
-  return query(
-    `
-      INSERT INTO edukasi_bookmark (userId, artikelId, jenis)
-      VALUES (?, ?, ?)
-    `,
-    [userId, artikelId, jenis]
-  );
+  return query(`INSERT INTO edukasi_bookmark (userId, artikelId, jenis) VALUES (?, ?, ?)`, [userId, artikelId, jenis]);
 }
 
 async function deleteBookmark(userId, bookmarkId) {
-  return query(
-    `
-      DELETE FROM edukasi_bookmark
-      WHERE id = ? AND userId = ?
-    `,
-    [bookmarkId, userId]
-  );
+  return query(`DELETE FROM edukasi_bookmark WHERE id = ? AND userId = ?`, [bookmarkId, userId]);
 }
 
 async function markBookmarkRead(userId, bookmarkId) {
-  return query(
-    `
-      UPDATE edukasi_bookmark
-      SET sudah_dibaca = 1
-      WHERE id = ? AND userId = ?
-    `,
-    [bookmarkId, userId]
-  );
+  return query(`UPDATE edukasi_bookmark SET sudah_dibaca = 1 WHERE id = ? AND userId = ?`, [bookmarkId, userId]);
 }
 
-/* =====================================================================
- *  EXPORT
- * ===================================================================== */
 module.exports = {
-  getPublicArticles,
-  getUserArticles,
-  getUserArticleById,
-  insertUserArticle,
-  updateUserArticle,
-  updateUserArticleStatus,
-  deleteUserArticle,
-
-  getBookmarks,
-  findBookmark,
-  insertBookmark,
-  deleteBookmark,
-  markBookmarkRead
+  getPublicArticles, getUserArticles, getUserArticleById, insertUserArticle,
+  updateUserArticle, updateUserArticleStatus, deleteUserArticle,
+  getBookmarks, findBookmark, insertBookmark, deleteBookmark, markBookmarkRead
 };

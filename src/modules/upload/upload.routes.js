@@ -1,4 +1,3 @@
-// src/modules/upload/upload.routes.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -7,40 +6,53 @@ const auth = require('../../auth/auth.middleware');
 
 const router = express.Router();
 
-// Pastikan folder /uploads (di root project) ada
+/** * Path: __dirname ada di src/modules/upload
+ * .. (1) -> src/modules
+ * .. (2) -> src
+ * .. (3) -> Root (Lokasi folder uploads)
+ */
 const uploadDir = path.join(__dirname, '../../../uploads');
+
+// Buat folder jika belum ada
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Konfigurasi storage multer
+// Konfigurasi Storage
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);   // ⬅️ pakai uploadDir yang benar
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname || '.jpg');
-    cb(null, uniqueSuffix + ext);
-  }
+    destination: function (req, file, cb) {
+        cb(null, uploadDir); 
+    },
+    filename: function (req, file, cb) {
+        // Format: timestamp-angkaRandom.jpg agar unik
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        const ext = path.extname(file.originalname || '.jpg');
+        cb(null, uniqueSuffix + ext);
+    }
 });
 
 const upload = multer({ storage });
 
-// Semua endpoint upload butuh login
+// Middleware Auth
 router.use(auth);
 
+// Endpoint Upload
 router.post('/image', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'File tidak ditemukan' });
-  }
+    if (!req.file) {
+        return res.status(400).json({ message: 'File tidak ditemukan' });
+    }
 
-  const url = `/uploads/${req.file.filename}`;
+    // URL ini yang disimpan di Database (Path Relatif)
+    const url = `/uploads/${req.file.filename}`;
 
-  res.status(201).json({
-    message: 'Upload gambar berhasil',
-    url       // ⬅️ ini yang dibaca Android sebagai UploadImageResponse.url
-  });
+    res.status(201).json({
+        message: 'Upload gambar berhasil',
+        url: url
+    });
 });
 
-module.exports = router;
+// PERBAIKAN: Export sebagai objek agar 'upload' bisa dipakai di edukasi.routes.js
+module.exports = {
+    router,
+    upload
+};

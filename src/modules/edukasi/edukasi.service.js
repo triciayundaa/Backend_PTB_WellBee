@@ -1,30 +1,27 @@
-// src/modules/edukasi/edukasi.service.js
 const model = require('./edukasi.model');
 
+/**
+ * Helper untuk membuat error object dengan status code
+ */
 function makeError(message, status = 500) {
   const err = new Error(message);
   err.status = status;
   return err;
 }
 
-/** ARTIKEL PUBLIK */
+// ==========================================
+// ARTIKEL LOGIC
+// ==========================================
+
 async function getPublicArticles() {
   return model.getPublicArticles();
 }
 
-/** ARTIKEL SAYA */
 async function getMyArticles(userId) {
   return model.getUserArticles(userId);
 }
 
-/**
- * Buat artikel user baru.
- * Sekarang bisa terima status dari Android:
- *  - "draft"
- *  - "uploaded"
- */
 async function createMyArticle(userId, payload) {
-  // Terima payload dari Android
   const {
     judul,
     isi,
@@ -32,44 +29,30 @@ async function createMyArticle(userId, payload) {
     waktu_baca,
     tag,
     gambar_url = null,
-    status = 'uploaded'   // ⬅️ default kalau tidak dikirim
+    status = 'uploaded'
   } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
   }
 
-  const title = judul;
-  const content = isi;
-  const category = kategori;
-  const readTime = waktu_baca;
-
-  // hanya isi tanggal_upload jika status = uploaded
   const tanggalUpload = (status === 'uploaded') ? new Date() : null;
 
-  const articleId = await model.insertUserArticle({
+  return model.insertUserArticle({
     userId,
-    title,
-    content,
-    category,
-    readTime,
+    title: judul,
+    content: isi,
+    category: kategori,
+    readTime: waktu_baca,
     tag,
     status,
     tanggalUpload,
     gambarUrl: gambar_url
   });
-
-  return articleId;
 }
 
 async function updateMyArticle(userId, articleId, payload, file) {
-  const {
-    judul,
-    isi,
-    kategori,
-    waktu_baca,
-    tag
-  } = payload;
+  const { judul, isi, kategori, waktu_baca, tag } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
@@ -83,10 +66,8 @@ async function updateMyArticle(userId, articleId, payload, file) {
     tag: tag
   };
 
-
   if (file) {
-    const gambarUrl = `/uploads/${file.filename}`;
-    dataToUpdate.gambar_url = gambarUrl;
+    dataToUpdate.gambar_url = `/uploads/${file.filename}`;
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
@@ -108,14 +89,7 @@ async function updateMyArticleStatus(userId, articleId, status) {
     throw makeError('Artikel tidak ditemukan / bukan milik Anda', 404);
   }
 
-  let tanggalUpload = existing.tanggalUpload;
-  if (status === 'uploaded' && !tanggalUpload) {
-    tanggalUpload = new Date();
-  }
-  if (status !== 'uploaded') {
-    // kalau status draft / canceled → tanggal_upload boleh null
-    tanggalUpload = null;
-  }
+  let tanggalUpload = (status === 'uploaded') ? (existing.tanggalUpload || new Date()) : null;
 
   await model.updateUserArticleStatus({
     articleId,
@@ -128,19 +102,21 @@ async function updateMyArticleStatus(userId, articleId, status) {
 async function removeMyArticle(userId, articleId) {
   const result = await model.deleteUserArticle(userId, articleId);
   if (result.affectedRows === 0) {
-    throw makeError('Artikel tidak ditemukan / bukan milik Anda', 404);
+    throw makeError('Artikel tidak ditemukan', 404);
   }
 }
 
+// ==========================================
+// BOOKMARK LOGIC
+// ==========================================
 
-/** BOOKMARKS */
 async function getBookmarks(userId) {
   return model.getBookmarks(userId);
 }
 
 async function addBookmark(userId, artikelId, jenis) {
   if (!artikelId || !['static', 'user'].includes(jenis)) {
-    throw makeError('artikelId / jenis tidak valid', 400);
+    throw makeError('Data tidak valid', 400);
   }
 
   const existing = await model.findBookmark(userId, artikelId, jenis);
@@ -166,18 +142,13 @@ async function markBookmarkAsRead(userId, bookmarkId) {
   }
 }
 
-
-
 module.exports = {
-  // artikel
   getPublicArticles,
   getMyArticles,
   createMyArticle,
   updateMyArticle,
   updateMyArticleStatus,
   removeMyArticle,
-
-  // bookmark
   getBookmarks,
   addBookmark,
   removeBookmark,
