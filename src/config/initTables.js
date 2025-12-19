@@ -13,6 +13,7 @@ async function createTables() {
         email VARCHAR(255) UNIQUE,
         password VARCHAR(255),
         phone VARCHAR(50),
+        fcm_token TEXT,  
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
