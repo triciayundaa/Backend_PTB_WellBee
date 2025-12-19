@@ -1,6 +1,7 @@
 ﻿// src/modules/edukasi/edukasi.controller.js
 const service = require('./edukasi.service');
 const { KATEGORI_LIST } = require('./edukasi.constants');
+const admin = require('firebase-admin'); // 🔹 Tambahkan import ini
 
 function handleError(res, err, label) {
   console.error(`Error ${label}:`, err);
@@ -8,10 +9,30 @@ function handleError(res, err, label) {
   res.status(status).json({ message: err.message || 'Internal server error' });
 }
 
+// 🔹 Fungsi Helper untuk kirim notifikasi FCM
+async function sendPushNotification(articleId, judul) {
+  const payload = {
+    notification: {
+      title: 'Wellbee: Edukasi Baru!',
+      body: `Baca artikel terbaru: ${judul}`
+    },
+    data: {
+      articleId: String(articleId)
+    },
+    topic: 'new_articles'
+  };
+
+  try {
+    const response = await admin.messaging().send(payload);
+    console.log('Successfully sent message:', response);
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
+
 /** 0) GET /api/edukasi/categories */
 async function getCategories(req, res) {
   try {
-    // Public: cukup kirim list kategori tetap
     res.json({ categories: KATEGORI_LIST });
   } catch (err) {
     handleError(res, err, 'getCategories');
@@ -43,7 +64,14 @@ async function getMyArticles(req, res) {
 async function createMyArticle(req, res) {
   try {
     const userId = req.user.id;
+    const { judul, status } = req.body; // Ambil judul dan status
     const articleId = await service.createMyArticle(userId, req.body);
+
+    // 🔹 Pemicu Notifikasi jika status langsung 'uploaded'
+    if (status === 'uploaded') {
+      sendPushNotification(articleId, judul);
+    }
+
     res.status(201).json({
       message: 'Artikel berhasil dibuat',
       articleId
@@ -53,15 +81,13 @@ async function createMyArticle(req, res) {
   }
 }
 
-/** 4) PUT /api/edukasi/my-articles/:id
- *    Update judul, isi, kategori, waktu_baca, tag, dan optional gambar baru
- */
+/** 4) PUT /api/edukasi/my-articles/:id */
 async function updateMyArticle(req, res) {
   try {
     const userId = req.user.id;
     const articleId = req.params.id;
-    const file = req.file || null;    // dari multer (upload.single('gambar'))
-    const payload = req.body;         // judul, isi, kategori, waktu_baca, tag
+    const file = req.file || null;
+    const payload = req.body;
 
     const result = await service.updateMyArticle(userId, articleId, payload, file);
 
@@ -79,7 +105,6 @@ async function removeMyArticle(req, res) {
   try {
     const userId = req.user.id;
     const articleId = req.params.id;
-
     await service.removeMyArticle(userId, articleId);
     res.json({ message: 'Artikel berhasil dihapus' });
   } catch (err) {
@@ -103,7 +128,6 @@ async function addBookmark(req, res) {
   try {
     const userId = req.user.id;
     const { artikelId, jenis } = req.body;
-
     const result = await service.addBookmark(userId, artikelId, jenis);
     if (result.already) {
       return res.status(200).json({ message: 'Sudah di-bookmark' });
@@ -119,7 +143,6 @@ async function deleteBookmark(req, res) {
   try {
     const userId = req.user.id;
     const bookmarkId = req.params.id;
-
     await service.removeBookmark(userId, bookmarkId);
     res.json({ message: 'Bookmark dihapus' });
   } catch (err) {
@@ -132,7 +155,6 @@ async function markBookmarkAsRead(req, res) {
   try {
     const userId = req.user.id;
     const bookmarkId = req.params.id;
-
     await service.markBookmarkAsRead(userId, bookmarkId);
     res.json({ message: 'Bookmark ditandai sudah dibaca' });
   } catch (err) {
@@ -140,20 +162,23 @@ async function markBookmarkAsRead(req, res) {
   }
 }
 
-/** 10) PATCH /api/edukasi/my-articles/:id/status
- *      Ubah status: draft / uploaded / canceled
- */
+/** 10) PATCH /api/edukasi/my-articles/:id/status */
 async function updateMyArticleStatus(req, res) {
   try {
     const userId = req.user.id;
     const articleId = req.params.id;
-    const { status } = req.body; // { status: "draft" | "uploaded" | "canceled" }
+    const { status } = req.body;
 
     if (!status) {
       return res.status(400).json({ message: 'Status wajib diisi' });
     }
 
-    await service.updateMyArticleStatus(userId, articleId, status);
+    const articleData = await service.updateMyArticleStatus(userId, articleId, status);
+
+    // 🔹 Pemicu Notifikasi jika status diubah menjadi 'uploaded'
+    if (status === 'uploaded') {
+      sendPushNotification(articleId, articleData.judul);
+    }
 
     return res.json({
       message: 'Status artikel berhasil diperbarui'

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const admin = require('firebase-admin'); // 🔹 TAMBAHAN: Import Firebase Admin
 require('dotenv').config();
 
 const app = express();
@@ -10,16 +11,25 @@ app.use(cors());
 app.use(express.json());
 
 // ========================
+// 🔹 Inisialisasi Firebase Admin
+// ========================
+// Pastikan file serviceAccountKey.json sudah ada di folder yang sama dengan index.js
+const serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+console.log("Firebase Admin initialized successfully");
+
+// ========================
 //  Static folder untuk file upload
 // ========================
-// Folder ini penting agar gambar artikel bisa dibuka di HP
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ========================
 //  Create tables database
 // ========================
 const createTables = require('./config/initTables');
-// Jalankan fungsi createTables untuk memastikan database siap
 createTables();
 
 // ========================

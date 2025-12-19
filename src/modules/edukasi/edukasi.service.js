@@ -1,17 +1,11 @@
+// src/modules/edukasi/edukasi.service.js
 const model = require('./edukasi.model');
 
-/**
- * Helper untuk membuat error object dengan status code
- */
 function makeError(message, status = 500) {
   const err = new Error(message);
   err.status = status;
   return err;
 }
-
-// ==========================================
-// ARTIKEL LOGIC
-// ==========================================
 
 async function getPublicArticles() {
   return model.getPublicArticles();
@@ -97,6 +91,9 @@ async function updateMyArticleStatus(userId, articleId, status) {
     status,
     tanggalUpload
   });
+
+  // 🔹 Return data artikel untuk keperluan notifikasi di controller
+  return existing; 
 }
 
 async function removeMyArticle(userId, articleId) {
@@ -105,10 +102,6 @@ async function removeMyArticle(userId, articleId) {
     throw makeError('Artikel tidak ditemukan', 404);
   }
 }
-
-// ==========================================
-// BOOKMARK LOGIC
-// ==========================================
 
 async function getBookmarks(userId) {
   return model.getBookmarks(userId);
