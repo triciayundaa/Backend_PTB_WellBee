@@ -1,73 +1,67 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const admin = require('firebase-admin'); // 🔹 TAMBAHAN: Import Firebase Admin
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
+// ========================
+// 1. MIDDLEWARE (FIX URUTAN)
+// ========================
 app.use(cors());
-app.use(express.json());
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true }));
+
+// ⚠️ PENTING: Hapus 'body-parser' manual, pakai bawaan express saja biar rapi.
+// Hapus baris app.use(express.json()) yang polosan (tanpa limit).
+// Langsung pasang yang ada limit 50mb di paling atas.
+
+app.use(express.json({ limit: '50mb' })); // ✅ BENAR: Foto besar bisa masuk
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ========================
-// 🔹 Inisialisasi Firebase Admin
+// 2. FIREBASE (HAPUS BAGIAN INI)
 // ========================
-// Pastikan file serviceAccountKey.json sudah ada di folder yang sama dengan index.js
-const serviceAccount = require("./serviceAccountKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-console.log("Firebase Admin initialized successfully");
+// ❌ JANGAN inisialisasi di sini lagi, karena sudah dilakukan di file:
+//    src/config/firebase.js (yang dipanggil oleh fisik.controller.js)
+//    Kalau double init, server bakal CRASH.
 
 // ========================
-//  Static folder untuk file upload
+// 3. STATIC FOLDER
 // ========================
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ========================
-//  Create tables database
+// 4. DATABASE
 // ========================
 const createTables = require('./config/initTables');
 createTables();
 
 // ========================
-//  Global Routes (Biasanya Auth)
+// 5. ROUTES
 // ========================
+// Route Global
 const routes = require('./routes');
 app.use('/api', routes);
 
-// ========================
-//  Route Fisik (PUNYA FATHIYA)
-// ========================
+// Route Fisik (PUNYA FATHIYA)
 const fisikRoutes = require('./modules/fisik/fisik.routes');
 app.use('/api/fisik', fisikRoutes);
 
-// ========================
-//  Route Edukasi (PUNYA KAMU)
-// ========================
+// Route Edukasi (PUNYA KAMU)
 const edukasiRoutes = require('./modules/edukasi/edukasi.routes');
 app.use('/api/edukasi', edukasiRoutes);
 
-// ========================
-//  Route Upload (Gambar Artikel)
-// ========================
+// Route Upload (Gambar Artikel)
 const uploadRoutes = require('./modules/upload/upload.routes');
-app.use('/api/upload', uploadRoutes.router);
+app.use('/api/upload', uploadRoutes.router); // Pastikan uploadRoutes meng-export { router }
 
 // ========================
-//  Root endpoint (Cek Server Jalan)
+// 6. ROOT & LISTEN
 // ========================
 app.get('/', (req, res) => {
-  res.send('WellBee API running');
+  res.send('WellBee API running 🐝');
 });
 
-// ========================
-//  Jalankan Server
-// ========================
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`🚀 Server running on http://localhost:${port}`);
 });
