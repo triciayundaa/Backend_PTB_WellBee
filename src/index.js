@@ -3,65 +3,61 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
+// Import Create Tables
+const createTables = require('./config/initTables');
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 // ========================
-// 1. MIDDLEWARE (FIX URUTAN)
+// 1. MIDDLEWARE
 // ========================
 app.use(cors());
 
-// ⚠️ PENTING: Hapus 'body-parser' manual, pakai bawaan express saja biar rapi.
-// Hapus baris app.use(express.json()) yang polosan (tanpa limit).
-// Langsung pasang yang ada limit 50mb di paling atas.
-
-app.use(express.json({ limit: '50mb' })); // ✅ BENAR: Foto besar bisa masuk
+// ✅ PENTING: Limit 50MB (Punya Kamu) - Supaya Foto Base64 Aman
+app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ========================
-// 2. FIREBASE (HAPUS BAGIAN INI)
+// 2. STATIC FOLDER
 // ========================
-// ❌ JANGAN inisialisasi di sini lagi, karena sudah dilakukan di file:
-//    src/config/firebase.js (yang dipanggil oleh fisik.controller.js)
-//    Kalau double init, server bakal CRASH.
-
-// ========================
-// 3. STATIC FOLDER
-// ========================
+// ✅ PENTING: Folder Uploads (Punya Kamu)
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ========================
-// 4. DATABASE
+// 3. ROUTES
 // ========================
-const createTables = require('./config/initTables');
-createTables();
-
-// ========================
-// 5. ROUTES
-// ========================
-// Route Global
 const routes = require('./routes');
 app.use('/api', routes);
 
-// Route Fisik (PUNYA FATHIYA)
-const fisikRoutes = require('./modules/fisik/fisik.routes');
-app.use('/api/fisik', fisikRoutes);
+// Note: Kita sudah memanggil routes gabungan di atas, 
+// jadi tidak perlu memanggil fisik/edukasi secara terpisah lagi di sini 
+// karena sudah ada di dalam file src/routes.js
 
-// Route Edukasi (PUNYA KAMU)
-const edukasiRoutes = require('./modules/edukasi/edukasi.routes');
-app.use('/api/edukasi', edukasiRoutes);
-
-// Route Upload (Gambar Artikel)
+// Route Upload (Khusus Gambar Artikel)
 const uploadRoutes = require('./modules/upload/upload.routes');
-app.use('/api/upload', uploadRoutes.router); // Pastikan uploadRoutes meng-export { router }
+app.use('/api/upload', uploadRoutes.router); 
 
 // ========================
-// 6. ROOT & LISTEN
+// 4. ROOT ENDPOINT
 // ========================
 app.get('/', (req, res) => {
   res.send('WellBee API running 🐝');
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Server running on http://localhost:${port}`);
-});
+// ========================
+// 5. START SERVER (Gaya Nailah - Async)
+// ========================
+// ✅ LEBIH AMAN: Pastikan tabel dibuat dulu, baru server jalan.
+(async () => {
+  try {
+    await createTables();
+
+    app.listen(port, () => {
+      console.log(`🚀 Server running on http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("❌ BOOT ERROR:", err);
+    process.exit(1);
+  }
+})();

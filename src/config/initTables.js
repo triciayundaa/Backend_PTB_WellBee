@@ -2,10 +2,13 @@
 const pool = require('./db');
 
 async function createTables() {
+  let connection;
   try {
-    const connection = await pool.getConnection();
+    // Menggunakan cara koneksi yang lebih aman (Style Nailah)
+    connection = await pool.getConnection();
 
-    // 1. Tabel Users (Gabungan)
+    // 1. TABEL USERS (GABUNGAN)
+    // ✅ PENTING: Ada fcm_token (Punya Kamu)
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -18,11 +21,7 @@ async function createTables() {
       );
     `);
 
-    // ==========================
-    // Tabel Fisik (PUNYA FATHIYA - VERSI LENGKAP)
-    // ==========================
-    
-    // Olahraga
+    // 2. TABEL FISIK (PUNYA KAMU - LENGKAP)
     await connection.query(`
       CREATE TABLE IF NOT EXISTS fisik_olahraga (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,7 +35,6 @@ async function createTables() {
       );
     `);
 
-    // Sleep / Tidur
     await connection.query(`
       CREATE TABLE IF NOT EXISTS fisik_sleep (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -50,7 +48,6 @@ async function createTables() {
       );
     `);
 
-    // Weight / Berat Badan
     await connection.query(`
       CREATE TABLE IF NOT EXISTS fisik_weight (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,24 +61,43 @@ async function createTables() {
       );
     `);
 
-    // ==========================
-    // Tabel Mental (PUNYA FATHIYA/GABUNGAN)
-    // ==========================
+    // 3. TABEL MENTAL (PUNYA NAILAH - VERSI UPDATE)
+    // ✅ Mental Mood
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS mental_jurnal (
+      CREATE TABLE IF NOT EXISTS mental_mood (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        userId INT,
-        isiJurnal TEXT,
-        tanggal DATE DEFAULT CURRENT_DATE,
-        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+        userId INT NOT NULL,
+        emoji VARCHAR(10) NOT NULL,
+        moodLabel VARCHAR(50) NOT NULL,
+        moodScale INT NOT NULL,
+        tanggal DATE NOT NULL DEFAULT (CURRENT_DATE),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_mental_mood_user_tanggal (userId, tanggal),
+        CONSTRAINT fk_mental_mood_user
+          FOREIGN KEY (userId) REFERENCES users(id)
+          ON DELETE CASCADE
       );
     `);
 
-    // ==========================
-    // Tabel Edukasi (PUNYA KAMU - VERSI LENGKAP)
-    // ==========================
+    // ✅ Mental Jurnal (Ada Audio & Foto)
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS mental_jurnal (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        userId INT NOT NULL,
+        triggerLabel VARCHAR(100),
+        isiJurnal TEXT NOT NULL,
+        foto LONGTEXT,
+        audio LONGTEXT, 
+        tanggal DATE NOT NULL DEFAULT (CURRENT_DATE),
+        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_mental_jurnal_user_tanggal (userId, tanggal),
+        CONSTRAINT fk_mental_jurnal_user
+          FOREIGN KEY (userId) REFERENCES users(id)
+          ON DELETE CASCADE
+      );
+    `);
 
-    // Artikel Bawaan (Static/Admin)
+    // 4. TABEL EDUKASI (PUNYA KAMU)
     await connection.query(`
       CREATE TABLE IF NOT EXISTS edukasi_artikel (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,7 +111,6 @@ async function createTables() {
       );
     `);
 
-    // Artikel User (My Articles)
     await connection.query(`
       CREATE TABLE IF NOT EXISTS user_artikel (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -114,7 +129,6 @@ async function createTables() {
       );
     `);
 
-    // Bookmark
     await connection.query(`
       CREATE TABLE IF NOT EXISTS edukasi_bookmark (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -127,11 +141,12 @@ async function createTables() {
       );
     `);
 
-    connection.release();
     console.log("✔ Semua tabel berhasil dibuat/siap dipakai");
 
   } catch (err) {
     console.error("❌ Gagal membuat tabel:", err);
+  } finally {
+    if (connection) connection.release();
   }
 }
 
