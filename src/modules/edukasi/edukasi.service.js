@@ -40,7 +40,7 @@ async function createMyArticle(userId, payload) {
     tag,
     status,
     tanggalUpload,
-    gambarUrl: gambar_url // 🔹 Pastikan variabel ini diteruskan ke model
+    gambar_url: gambar_url // 🔹 Pastikan variabel ini diteruskan ke model
   });
 }
 
