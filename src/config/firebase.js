@@ -1,16 +1,19 @@
 const admin = require("firebase-admin");
 
-// Kita paksa masukkan string langsung jika process.env gagal
-const projectId = process.env.FIREBASE_PROJECT_ID || "notifikasi-wellbe";
-const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || "firebase-adminsdk-fbsvc@notifikasi-wellbe.iam.gserviceaccount.com";
+// Debugging: Cek apakah variabel masuk ke sistem Vercel (Lihat di Logs)
+console.log("Variabel FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID);
 
 const serviceAccount = {
   type: "service_account",
-  project_id: projectId, // Menggunakan variabel projectId di atas
-  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
-  client_email: clientEmail, // Menggunakan variabel clientEmail di atas
-  client_id: process.env.FIREBASE_CLIENT_ID,
+  // Gunakan ENV, jika gagal/kosong gunakan string "notifikasi-wellbe" secara manual
+  project_id: process.env.FIREBASE_PROJECT_ID || "notifikasi-wellbe",
+  private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || "7c963c7aa3cc61a549a353ede9e49612ffc8002e",
+  // Penanganan khusus untuk private key agar baris baru (\n) terbaca benar
+  private_key: process.env.FIREBASE_PRIVATE_KEY 
+    ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') 
+    : undefined,
+  client_email: process.env.FIREBASE_CLIENT_EMAIL || "firebase-adminsdk-fbsvc@notifikasi-wellbe.iam.gserviceaccount.com",
+  client_id: process.env.FIREBASE_CLIENT_ID || "109631582509002651172",
   auth_uri: "https://accounts.google.com/o/oauth2/auth",
   token_uri: "https://oauth2.googleapis.com/token",
   auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
@@ -23,9 +26,9 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log("✅ Firebase Berhasil Terhubung ke:", projectId);
+    console.log("✅ Firebase Admin Berhasil Inisialisasi");
   } catch (error) {
-    console.error("❌ Firebase Error:", error.message);
+    console.error("❌ Firebase Admin Gagal:", error.message);
   }
 }
 
