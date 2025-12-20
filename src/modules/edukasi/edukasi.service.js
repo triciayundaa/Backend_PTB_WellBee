@@ -19,9 +19,9 @@ async function createMyArticle(userId, payload) {
     judul,
     isi,
     kategori,
-    waktu_baca, // pastikan sesuai CreateArticleRequest di Android
+    waktu_baca, 
     tag,
-    gambar_url = null, 
+    gambar_url, // 🔹 Berisi Base64 dari Android
     status = 'uploaded'
   } = payload;
 
@@ -37,11 +37,12 @@ async function createMyArticle(userId, payload) {
     title: judul,
     content: isi,
     category: kategori,
-    readTime: waktu_baca, // 🔹 SESUAIKAN: Harus 'readTime' agar diterima model
+    readTime: waktu_baca,
     tag,
     status,
-    tanggalUpload: (status === 'uploaded') ? new Date() : null,
-    gambarUrl: gambar_url   // 🔹 SESUAIKAN: Harus 'gambarUrl' agar diterima model
+    tanggalUpload: new Date(),
+    // 🔹 PASTIKAN menggunakan gambarUrl (CamelCase) jika model mengharapkan itu
+    gambarUrl: gambar_url 
   });
 }
 

@@ -18,12 +18,17 @@ async function query(sql, params = []) {
 
 async function getPublicArticles() {
   return query(`
-    SELECT * FROM (
-        SELECT 
-          a.id, a.judul, a.isi, a.kategori, a.waktu_baca AS waktuBaca,
-          a.tag, a.gambar_url AS gambarUrl, a.tanggal,
-          NULL AS authorName, 'static' AS jenis, NULL AS userId
-        FROM edukasi_artikel a
+    SELECT 
+      ua.id, 
+      ua.judul, 
+      ua.isi, 
+      ua.kategori, 
+      ua.waktu_baca AS waktuBaca, -- 🔹 Aliasing ini penting untuk DTO Android
+      ua.tag, 
+      ua.gambar_url AS gambarUrl, -- 🔹 Harus AS gambarUrl agar cocok dengan @SerializedName
+      ua.tanggal_upload AS tanggal
+    FROM user_artikel ua
+    WHERE ua.status = 'uploaded'
 
         UNION ALL
 
