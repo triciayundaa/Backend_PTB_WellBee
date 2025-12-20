@@ -19,9 +19,9 @@ async function createMyArticle(userId, payload) {
     judul,
     isi,
     kategori,
-    waktu_baca,
+    waktu_baca, // pastikan sesuai CreateArticleRequest di Android
     tag,
-    gambar_url = null, // 🔹 Sekarang bisa menerima string Base64 dari Android
+    gambar_url = null, 
     status = 'uploaded'
   } = payload;
 
@@ -31,16 +31,17 @@ async function createMyArticle(userId, payload) {
 
   const tanggalUpload = (status === 'uploaded') ? new Date() : null;
 
+  // 🔹 PASTIKAN properti di bawah ini sama persis dengan yang diharapkan edukasi.model.js
   return model.insertUserArticle({
     userId,
     title: judul,
     content: isi,
     category: kategori,
-    readTime: waktu_baca,
+    readTime: waktu_baca, // 🔹 SESUAIKAN: Harus 'readTime' agar diterima model
     tag,
     status,
-    tanggalUpload,
-    gambar_url: gambar_url // 🔹 Pastikan variabel ini diteruskan ke model
+    tanggalUpload: (status === 'uploaded') ? new Date() : null,
+    gambarUrl: gambar_url   // 🔹 SESUAIKAN: Harus 'gambarUrl' agar diterima model
   });
 }
 
