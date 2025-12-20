@@ -109,7 +109,8 @@ const getMonthlyStats = async (req, res) => {
 // =========================
 const simpanJurnal = async (req, res) => {
   try {
-    const { userId, triggerLabel, isiJurnal, foto, tanggal } = req.body;
+    // [UPDATE] Menambahkan 'audio' agar Voice Note tersimpan
+    const { userId, triggerLabel, isiJurnal, foto, audio, tanggal } = req.body;
 
     if (!userId || !isiJurnal) {
       return res.status(400).json({
@@ -123,6 +124,7 @@ const simpanJurnal = async (req, res) => {
       triggerLabel,
       isiJurnal,
       foto,
+      audio, // Teruskan audio ke service
       tanggal
     });
 
@@ -167,13 +169,15 @@ const getJournalDetail = async (req, res) => {
 const updateJournal = async (req, res) => {
   try {
     const { id } = req.params;
-    const { triggerLabel, isiJurnal, foto, tanggal } = req.body;
+    // [UPDATE] Menambahkan 'audio' untuk update
+    const { triggerLabel, isiJurnal, foto, audio, tanggal } = req.body;
 
     const result = await mentalService.updateJournal({
       id,
       triggerLabel,
       isiJurnal,
       foto,
+      audio, // Teruskan audio ke service
       tanggal
     });
 

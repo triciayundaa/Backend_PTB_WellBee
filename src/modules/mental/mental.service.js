@@ -81,15 +81,17 @@ const mentalService = {
   // =========================
   // JURNAL
   // =========================
-  simpanJurnal: async ({ userId, triggerLabel, isiJurnal, foto, tanggal }) => {
+  simpanJurnal: async ({ userId, triggerLabel, isiJurnal, foto, audio, tanggal }) => {
     if (!userId) throw new Error("userId wajib diisi");
     if (!isiJurnal) throw new Error("isiJurnal wajib diisi");
 
+    // [UPDATE] audio diteruskan ke Model
     const result = await MentalModel.createJournal({
       userId,
       triggerLabel,
       isiJurnal,
       foto,
+      audio, 
       tanggal
     });
 
@@ -106,13 +108,15 @@ const mentalService = {
     return await MentalModel.getJournalById(id);
   },
 
-  updateJournal: async ({ id, triggerLabel, isiJurnal, foto, tanggal }) => {
+  updateJournal: async ({ id, triggerLabel, isiJurnal, foto, audio, tanggal }) => {
     if (!id) throw new Error("id wajib diisi");
+    // [UPDATE] audio diteruskan ke Model
     const result = await MentalModel.updateJournal({
       id,
       triggerLabel,
       isiJurnal,
       foto,
+      audio,
       tanggal
     });
     if (result.affectedRows === 0) throw new Error("Jurnal tidak ditemukan");
