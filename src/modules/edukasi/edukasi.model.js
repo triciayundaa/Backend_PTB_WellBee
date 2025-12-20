@@ -28,7 +28,7 @@ async function getPublicArticles() {
       ua.gambar_url AS gambarUrl, -- 🔹 Harus AS gambarUrl agar cocok dengan @SerializedName
       ua.tanggal_upload AS tanggal
     FROM user_artikel ua
-    WHERE ua.status = 'uploaded'
+  
 
         UNION ALL
 
