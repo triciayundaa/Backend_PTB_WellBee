@@ -1,13 +1,15 @@
 const admin = require("firebase-admin");
 
-// Objek konfigurasi mengambil dari Environment Variables
+// Kita paksa masukkan string langsung jika process.env gagal
+const projectId = process.env.FIREBASE_PROJECT_ID || "notifikasi-wellbe";
+const clientEmail = process.env.FIREBASE_CLIENT_EMAIL || "firebase-adminsdk-fbsvc@notifikasi-wellbe.iam.gserviceaccount.com";
+
 const serviceAccount = {
   type: "service_account",
-  project_id: process.env.FIREBASE_PROJECT_ID,
+  project_id: projectId, // Menggunakan variabel projectId di atas
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  // Penting: replace ini untuk menangani karakter newline pada private key
   private_key: process.env.FIREBASE_PRIVATE_KEY ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
-  client_email: process.env.FIREBASE_CLIENT_EMAIL,
+  client_email: clientEmail, // Menggunakan variabel clientEmail di atas
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri: "https://accounts.google.com/o/oauth2/auth",
   token_uri: "https://oauth2.googleapis.com/token",
@@ -17,9 +19,14 @@ const serviceAccount = {
 };
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount)
+    });
+    console.log("✅ Firebase Berhasil Terhubung ke:", projectId);
+  } catch (error) {
+    console.error("❌ Firebase Error:", error.message);
+  }
 }
 
 module.exports = admin;
