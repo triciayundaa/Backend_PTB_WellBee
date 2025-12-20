@@ -6,6 +6,7 @@ async function createTables() {
   try {
     // Menggunakan cara koneksi yang lebih aman (Style Nailah)
     connection = await pool.getConnection();
+    await connection.query("ALTER TABLE user_artikel MODIFY COLUMN gambar_url LONGTEXT;");
 
     // 1. TABEL USERS (GABUNGAN)
     // ✅ PENTING: Ada fcm_token (Punya Kamu)
