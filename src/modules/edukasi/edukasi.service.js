@@ -14,6 +14,7 @@ async function getMyArticles(userId) {
   return model.getUserArticles(userId);
 }
 
+// 🔹 PERBAIKAN: Menjamin status 'uploaded' agar tampil di Education Screen
 async function createMyArticle(userId, payload) {
   const {
     judul,
@@ -21,17 +22,17 @@ async function createMyArticle(userId, payload) {
     kategori,
     waktu_baca, 
     tag,
-    gambar_url, // 🔹 Berisi Base64 dari Android
-    status = 'uploaded'
+    gambar_url, // Berisi Base64 dari Android
+    status
   } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
   }
 
-  const tanggalUpload = (status === 'uploaded') ? new Date() : null;
+  // Jika status kosong dari Android, paksa jadi 'uploaded' agar muncul di halaman Publik
+  const finalStatus = status || 'uploaded';
 
-  // 🔹 PASTIKAN properti di bawah ini sama persis dengan yang diharapkan edukasi.model.js
   return model.insertUserArticle({
     userId,
     title: judul,
@@ -39,16 +40,15 @@ async function createMyArticle(userId, payload) {
     category: kategori,
     readTime: waktu_baca,
     tag,
-    status,
+    status: finalStatus,
     tanggalUpload: new Date(),
-    // 🔹 PASTIKAN menggunakan gambarUrl (CamelCase) jika model mengharapkan itu
-    gambarUrl: gambar_url 
+    gambarUrl: gambar_url // Pastikan model menerima properti ini
   });
 }
 
-// 🔹 PERBAIKAN: Fungsi update dimodifikasi untuk mendukung Base64 tanpa folder /uploads
+// 🔹 PERBAIKAN: Sinkronisasi update gambar Base64
 async function updateMyArticle(userId, articleId, payload, file) {
-  const { judul, isi, kategori, waktu_baca, tag, gambar_base64 } = payload; // 🔹 Ambil gambar_base64 dari body jika ada
+  const { judul, isi, kategori, waktu_baca, tag, gambar_base64 } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
@@ -58,16 +58,14 @@ async function updateMyArticle(userId, articleId, payload, file) {
     title: judul,
     content: isi,
     category: kategori,
-    read_time: waktu_baca, // 🔹 Pastikan sesuai dengan penamaan di edukasi.model.js
+    readTime: waktu_baca, // Samakan dengan create (camelCase)
     tag: tag
   };
 
-  // 🔹 Logika baru: Jika ada file (dari multer) atau string base64, simpan sebagai URL/Teks
   if (file) {
-    // Note: Ini tetap akan sulit di Vercel, disarankan kirim via gambar_base64 dari Android
-    dataToUpdate.gambar_url = `/uploads/${file.filename}`;
+    dataToUpdate.gambarUrl = `/uploads/${file.filename}`;
   } else if (gambar_base64) {
-    dataToUpdate.gambar_url = gambar_base64; // 🔹 Simpan string panjang Base64 ke database
+    dataToUpdate.gambarUrl = gambar_base64; // Simpan string Base64
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);

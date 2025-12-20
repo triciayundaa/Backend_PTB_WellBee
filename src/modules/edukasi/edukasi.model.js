@@ -18,24 +18,37 @@ async function query(sql, params = []) {
 
 async function getPublicArticles() {
   return query(`
-    SELECT 
-      ua.id, 
-      ua.judul, 
-      ua.isi, 
-      ua.kategori, 
-      ua.waktu_baca AS waktuBaca, -- 🔹 Aliasing ini penting untuk DTO Android
-      ua.tag, 
-      ua.gambar_url AS gambarUrl, -- 🔹 Harus AS gambarUrl agar cocok dengan @SerializedName
-      ua.tanggal_upload AS tanggal
-    FROM user_artikel ua
-  
+    SELECT * FROM (
+        /* 1. Ambil Artikel dari Admin (Tabel edukasi_artikel) */
+        SELECT 
+          a.id, 
+          a.judul, 
+          a.isi, 
+          a.kategori, 
+          a.waktu_baca AS waktuBaca,
+          a.tag, 
+          a.gambar_url AS gambarUrl, 
+          a.tanggal,
+          NULL AS authorName, 
+          'static' AS jenis, 
+          NULL AS userId
+        FROM edukasi_artikel a
 
         UNION ALL
 
+        /* 2. Ambil Artikel dari User (Tabel user_artikel) */
         SELECT
-          ua.id, ua.judul, ua.isi, ua.kategori, ua.waktu_baca AS waktuBaca,
-          ua.tag, ua.gambar_url AS gambarUrl, ua.tanggal_upload AS tanggal,
-          u.username AS authorName, 'user' AS jenis, ua.userId AS userId
+          ua.id, 
+          ua.judul, 
+          ua.isi, 
+          ua.kategori, 
+          ua.waktu_baca AS waktuBaca,
+          ua.tag, 
+          ua.gambar_url AS gambarUrl, 
+          ua.tanggal_upload AS tanggal,
+          u.username AS authorName, 
+          'user' AS jenis, 
+          ua.userId AS userId
         FROM user_artikel ua
         JOIN users u ON ua.userId = u.id
         WHERE ua.status = 'uploaded'
