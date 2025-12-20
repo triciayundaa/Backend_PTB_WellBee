@@ -1,4 +1,3 @@
-// src/modules/edukasi/edukasi.service.js
 const model = require('./edukasi.model');
 
 function makeError(message, status = 500) {
@@ -22,7 +21,7 @@ async function createMyArticle(userId, payload) {
     kategori,
     waktu_baca,
     tag,
-    gambar_url = null,
+    gambar_url = null, // 🔹 Sekarang bisa menerima string Base64 dari Android
     status = 'uploaded'
   } = payload;
 
@@ -41,12 +40,13 @@ async function createMyArticle(userId, payload) {
     tag,
     status,
     tanggalUpload,
-    gambarUrl: gambar_url
+    gambarUrl: gambar_url // 🔹 Pastikan variabel ini diteruskan ke model
   });
 }
 
+// 🔹 PERBAIKAN: Fungsi update dimodifikasi untuk mendukung Base64 tanpa folder /uploads
 async function updateMyArticle(userId, articleId, payload, file) {
-  const { judul, isi, kategori, waktu_baca, tag } = payload;
+  const { judul, isi, kategori, waktu_baca, tag, gambar_base64 } = payload; // 🔹 Ambil gambar_base64 dari body jika ada
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
@@ -56,12 +56,16 @@ async function updateMyArticle(userId, articleId, payload, file) {
     title: judul,
     content: isi,
     category: kategori,
-    read_time: waktu_baca,
+    read_time: waktu_baca, // 🔹 Pastikan sesuai dengan penamaan di edukasi.model.js
     tag: tag
   };
 
+  // 🔹 Logika baru: Jika ada file (dari multer) atau string base64, simpan sebagai URL/Teks
   if (file) {
+    // Note: Ini tetap akan sulit di Vercel, disarankan kirim via gambar_base64 dari Android
     dataToUpdate.gambar_url = `/uploads/${file.filename}`;
+  } else if (gambar_base64) {
+    dataToUpdate.gambar_url = gambar_base64; // 🔹 Simpan string panjang Base64 ke database
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
@@ -92,7 +96,6 @@ async function updateMyArticleStatus(userId, articleId, status) {
     tanggalUpload
   });
 
-  // 🔹 Return data artikel untuk keperluan notifikasi di controller
   return existing; 
 }
 

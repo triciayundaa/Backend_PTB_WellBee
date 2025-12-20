@@ -112,22 +112,22 @@ async function createTables() {
     `);
 
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS user_artikel (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        userId INT NOT NULL,
-        judul VARCHAR(255) NOT NULL,
-        isi TEXT NOT NULL,
-        kategori VARCHAR(100),
-        waktu_baca VARCHAR(50),
-        tag VARCHAR(100),
-        gambar_url VARCHAR(500),
-        status ENUM('draft', 'uploaded', 'canceled') DEFAULT 'draft',
-        tanggal_upload DATE,
-        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-      );
-    `);
+  CREATE TABLE IF NOT EXISTS user_artikel (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    userId INT NOT NULL,
+    judul VARCHAR(255) NOT NULL,
+    isi TEXT NOT NULL,
+    kategori VARCHAR(100),
+    waktu_baca VARCHAR(50),
+    tag VARCHAR(100),
+    gambar_url LONGTEXT, -- 🔹 PERBAIKAN: Ubah menjadi LONGTEXT
+    status ENUM('draft', 'uploaded', 'canceled') DEFAULT 'draft',
+    tanggal_upload DATE DEFAULT (CURRENT_DATE),
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+  );
+`);
 
     await connection.query(`
       CREATE TABLE IF NOT EXISTS edukasi_bookmark (

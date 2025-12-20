@@ -1,7 +1,7 @@
 ﻿// src/modules/edukasi/edukasi.controller.js
 const service = require('./edukasi.service');
 const { KATEGORI_LIST } = require('./edukasi.constants');
-const admin = require('firebase-admin'); // 🔹 Tambahkan import ini
+const admin = require('../../config/firebase'); // 🔹 Tambahkan import ini
 
 function handleError(res, err, label) {
   console.error(`Error ${label}:`, err);
