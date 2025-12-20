@@ -11,17 +11,19 @@ async function query(sql, params = []) {
   }
 }
 
-/* =====================================================================
- * ARTIKEL PUBLIK (static + user uploaded)
- * ===================================================================== */
+
 async function getPublicArticles() {
-  // 🔹 Perbaikan: Gunakan COALESCE dan format yang konsisten untuk memastikan pengurutan DESC bekerja
   return query(`
-    SELECT * FROM (
+    SELECT 
+      id, judul, isi, kategori, waktuBaca, tag, gambarUrl, tanggal, authorName, jenis, userId 
+    FROM (
         SELECT 
           a.id, a.judul, a.isi, a.kategori, a.waktu_baca AS waktuBaca,
           a.tag, a.gambar_url AS gambarUrl, 
-          CAST(a.tanggal AS CHAR) AS tanggal, -- Pastikan tipe data konsisten
+          -- Tanggal untuk tampilan UI
+          DATE_FORMAT(a.tanggal, '%Y-%m-%dT%H:%i:%sZ') AS tanggal,
+          -- Kolom bayangan untuk sorting (menggunakan timestamp asli)
+          a.tanggal AS raw_date,
           NULL AS authorName, 'static' AS jenis, NULL AS userId
         FROM edukasi_artikel a
 
@@ -30,13 +32,18 @@ async function getPublicArticles() {
         SELECT
           ua.id, ua.judul, ua.isi, ua.kategori, ua.waktu_baca AS waktuBaca,
           ua.tag, ua.gambar_url AS gambarUrl, 
-          CAST(ua.tanggal_upload AS CHAR) AS tanggal, -- Pastikan tipe data konsisten
+          DATE_FORMAT(ua.tanggal_upload, '%Y-%m-%dT%H:%i:%sZ') AS tanggal,
+          -- Gunakan createdAt karena ini punya jam:menit:detik yang pasti unik
+          ua.createdAt AS raw_date,
           u.username AS authorName, 'user' AS jenis, ua.userId AS userId
         FROM user_artikel ua
         JOIN users u ON ua.userId = u.id
         WHERE ua.status = 'uploaded'
     ) AS gabungan
-    ORDER BY tanggal DESC, id DESC 
+    -- URUTAN PALING PENTING:
+    -- 1. Urutkan berdasarkan waktu upload real (raw_date) terbaru
+    -- 2. Jika waktu sama, urutkan berdasarkan ID terbesar
+    ORDER BY raw_date DESC, id DESC 
   `); 
 }
 
