@@ -46,18 +46,24 @@ app.get('/', (req, res) => {
 });
 
 // ========================
-// 5. START SERVER (Gaya Nailah - Async)
+// 5. PENYESUAIAN VERCEL
 // ========================
-// ✅ LEBIH AMAN: Pastikan tabel dibuat dulu, baru server jalan.
-(async () => {
-  try {
-    await createTables();
 
-    app.listen(port, () => {
-      console.log(`🚀 Server running on http://localhost:${port}`);
-    });
-  } catch (err) {
-    console.error("❌ BOOT ERROR:", err);
-    process.exit(1);
-  }
-})();
+// Kita tetap jalankan initTables, tapi tidak membungkus app.listen
+createTables()
+  .then(() => {
+    console.log("✅ Database tables initialized");
+  })
+  .catch((err) => {
+    console.error("❌ Init tables error:", err);
+  });
+
+// HAPUS atau COMMENT bagian app.listen ini:
+/*
+app.listen(port, () => {
+  console.log(`🚀 Server running on http://localhost:${port}`);
+});
+*/
+
+// WAJIB: Export app untuk Vercel
+module.exports = app;
