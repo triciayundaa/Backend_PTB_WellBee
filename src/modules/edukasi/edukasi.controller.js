@@ -9,7 +9,7 @@ function handleError(res, err, label) {
   res.status(status).json({ message: err.message || 'Internal server error' });
 }
 
-// 🔹 Fungsi Helper untuk kirim notifikasi FCM
+// 🔹 Fungsi Helper untuk kirim notifikasi FCM (DIUPDATE)
 async function sendPushNotification(articleId, judul) {
   const payload = {
     notification: {
@@ -17,7 +17,15 @@ async function sendPushNotification(articleId, judul) {
       body: `Baca artikel terbaru: ${judul}`
     },
     data: {
-      articleId: String(articleId)
+      articleId: String(articleId),
+      target_screen: "education_detail" // 🔹 Tambahan agar MainActivity tahu arah navigasinya
+    },
+    android: {
+      notification: {
+        channelId: "wellbee_channel_id", // 🔹 Harus sama dengan di MainActivity.kt
+        priority: "high",
+        sound: "default"
+      }
     },
     topic: 'new_articles'
   };
