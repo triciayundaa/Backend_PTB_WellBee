@@ -49,15 +49,21 @@ app.get('/', (req, res) => {
 // 5. START SERVER (Gaya Nailah - Async)
 // ========================
 // ✅ LEBIH AMAN: Pastikan tabel dibuat dulu, baru server jalan.
-(async () => {
-  try {
-    await createTables();
+// ... (Kode atas biarkan saja) ...
 
+// Jalankan createTables (Sinkronisasi Database)
+createTables().then(() => {
+    console.log("✅ Database Tables Synced!");
+}).catch((err) => {
+    console.error("❌ Database Sync Error:", err);
+});
+
+// Cek apakah dijalankan di lokal (Laptop) atau Vercel
+if (require.main === module) {
     app.listen(port, () => {
-      console.log(`🚀 Server running on http://localhost:${port}`);
+        console.log(`🚀 Server running locally on http://localhost:${port}`);
     });
-  } catch (err) {
-    console.error("❌ BOOT ERROR:", err);
-    process.exit(1);
-  }
-})();
+}
+
+// PENTING: Export app supaya Vercel bisa membacanya
+module.exports = app;
