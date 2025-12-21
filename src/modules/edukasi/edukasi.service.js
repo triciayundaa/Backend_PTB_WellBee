@@ -64,8 +64,9 @@ async function updateMyArticle(userId, articleId, payload, file) {
 
   if (file) {
     dataToUpdate.gambarUrl = file.path; // Cloudinary menyimpan URL di property .path
-  } else if (gambar_base64) {
-    dataToUpdate.gambarUrl = gambar_base64; // Simpan string Base64
+  } else if (payload.gambar_url) {
+    // Jika tidak ada file baru, tetap gunakan URL yang lama (agar tidak hilang)
+    dataToUpdate.gambar_url = payload.gambar_url;
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
