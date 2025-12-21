@@ -72,18 +72,12 @@ async function getMyArticles(req, res) {
 async function createMyArticle(req, res) {
   try {
     const userId = req.user.id;
-    const { judul, status } = req.body;
-    
-    // 🔹 TAMBAHKAN INI: Ambil URL gambar dari Cloudinary jika ada
-    const payload = { ...req.body };
-    if (req.file) {
-      payload.gambar_url = req.file.path; // Mengambil URL Cloudinary
-    }
+    const { judul, status } = req.body; // Ambil judul dan status
+    const articleId = await service.createMyArticle(userId, req.body);
 
-    const articleId = await service.createMyArticle(userId, payload);
-
+    // 🔹 Pemicu Notifikasi jika status langsung 'uploaded'
     if (status === 'uploaded') {
-      sendPushNotification(articleId, judul);
+      sendPushNotification(articleId, judul).catch(err => console.error("FCM Error:", err));
     }
 
     res.status(201).json({ message: 'Artikel berhasil dibuat', articleId });
@@ -188,12 +182,10 @@ async function updateMyArticleStatus(req, res) {
 
     // 🔹 Pemicu Notifikasi jika status diubah menjadi 'uploaded'
     if (status === 'uploaded') {
-      sendPushNotification(articleId, articleData.judul);
+      sendPushNotification(articleId, articleData.judul).catch(err => console.error("FCM Error:", err));
     }
 
-    return res.json({
-      message: 'Status artikel berhasil diperbarui'
-    });
+    return res.json({ message: 'Status artikel berhasil diperbarui' });
   } catch (err) {
     handleError(res, err, 'updateMyArticleStatus');
   }

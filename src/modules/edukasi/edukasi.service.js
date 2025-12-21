@@ -46,9 +46,9 @@ async function createMyArticle(userId, payload) {
   });
 }
 
-// 🔹 PERBAIKAN: Sinkronisasi update gambar Base64
+// 🔹 PERBAIKAN: Sinkronisasi nama properti gambar_url
 async function updateMyArticle(userId, articleId, payload, file) {
-  const { judul, isi, kategori, waktu_baca, tag, gambar_base64 } = payload;
+  const { judul, isi, kategori, waktu_baca, tag } = payload;
 
   if (!judul || !isi) {
     throw makeError('Judul dan isi wajib diisi', 400);
@@ -58,15 +58,15 @@ async function updateMyArticle(userId, articleId, payload, file) {
     title: judul,
     content: isi,
     category: kategori,
-    read_time: waktu_baca, // Samakan dengan create (camelCase)
+    read_time: waktu_baca, 
     tag: tag
   };
 
+  // 🔹 PERBAIKAN LOGIKA: Pastikan menggunakan key 'gambar_url' (dengan underscore)
   if (file) {
-    dataToUpdate.gambarUrl = file.path; // Cloudinary menyimpan URL di property .path
+    dataToUpdate.gambar_url = file.path; // Dari Cloudinary
   } else if (payload.gambar_url) {
-    // Jika tidak ada file baru, tetap gunakan URL yang lama (agar tidak hilang)
-    dataToUpdate.gambar_url = payload.gambar_url;
+    dataToUpdate.gambar_url = payload.gambar_url; // Tetap gunakan URL lama jika ada
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
