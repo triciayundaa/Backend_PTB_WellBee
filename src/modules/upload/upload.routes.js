@@ -11,7 +11,7 @@ router.use(auth);
  * Endpoint: POST /api/upload/image
  * Deskripsi: Mengunggah gambar langsung ke Cloudinary
  */
-router.post('/image', upload.single('image'), (req, res) => {
+router.post('/image', upload.single('gambar'), (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'File tidak ditemukan atau format salah' });

@@ -72,18 +72,21 @@ async function getMyArticles(req, res) {
 async function createMyArticle(req, res) {
   try {
     const userId = req.user.id;
-    const { judul, status } = req.body; // Ambil judul dan status
-    const articleId = await service.createMyArticle(userId, req.body);
+    const { judul, status } = req.body;
+    
+    // 🔹 TAMBAHKAN INI: Ambil URL gambar dari Cloudinary jika ada
+    const payload = { ...req.body };
+    if (req.file) {
+      payload.gambar_url = req.file.path; // Mengambil URL Cloudinary
+    }
 
-    // 🔹 Pemicu Notifikasi jika status langsung 'uploaded'
+    const articleId = await service.createMyArticle(userId, payload);
+
     if (status === 'uploaded') {
       sendPushNotification(articleId, judul);
     }
 
-    res.status(201).json({
-      message: 'Artikel berhasil dibuat',
-      articleId
-    });
+    res.status(201).json({ message: 'Artikel berhasil dibuat', articleId });
   } catch (err) {
     handleError(res, err, 'createMyArticle');
   }

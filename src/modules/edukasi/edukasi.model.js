@@ -209,13 +209,13 @@ async function updateUserArticleStatus({ articleId, userId, status, tanggalUploa
       WHERE id = ? AND userId = ?
     `,
     [status, tanggalUpload, articleId, userId]
-  );
+  );}
 
 if (data.read_time !== undefined) {
     fields.push('waktu_baca = ?'); // 🔹 Pastikan kolom DB-nya 'waktu_baca'
     values.push(data.read_time);
 }
-}
+
 
 async function deleteUserArticle(userId, articleId) {
   return query(

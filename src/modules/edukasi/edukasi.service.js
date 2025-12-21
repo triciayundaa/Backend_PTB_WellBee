@@ -58,12 +58,12 @@ async function updateMyArticle(userId, articleId, payload, file) {
     title: judul,
     content: isi,
     category: kategori,
-    readTime: waktu_baca, // Samakan dengan create (camelCase)
+    read_time: waktu_baca, // Samakan dengan create (camelCase)
     tag: tag
   };
 
   if (file) {
-    dataToUpdate.gambarUrl = `/uploads/${file.filename}`;
+    dataToUpdate.gambarUrl = file.path; // Cloudinary menyimpan URL di property .path
   } else if (gambar_base64) {
     dataToUpdate.gambarUrl = gambar_base64; // Simpan string Base64
   }
