@@ -5,12 +5,10 @@ const router = express.Router();
 const auth = require('../../auth/auth.middleware');
 const controller = require('./edukasi.controller');
 
-/// PERBAIKAN: Mengambil properti 'upload' dari objek yang diekspor upload.routes
-const { upload } = require('../upload/upload.routes');
 
-// =======================
-//  Public route (tanpa login)
-// =======================
+const upload = require('../../middleware/upload'); // Langsung ke file upload.js yang baru
+
+
 
 // Daftar kategori edukasi (list tetap)
 router.get('/categories', controller.getCategories);
@@ -28,7 +26,7 @@ router.get('/articles', controller.getPublicArticles);
 router.get('/my-articles', controller.getMyArticles);
 
 // Buat artikel baru
-router.post('/my-articles', controller.createMyArticle);
+router.post('/my-articles', upload.single('gambar'), controller.createMyArticle);
 
 // Update artikel saya
 router.put(

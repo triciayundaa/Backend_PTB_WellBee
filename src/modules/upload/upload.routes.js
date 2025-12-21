@@ -1,58 +1,36 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const auth = require('../../auth/auth.middleware');
+const upload = require('../../middleware/upload'); // Memanggil middleware Cloudinary yang kita buat tadi
 
 const router = express.Router();
 
-/** * Path: __dirname ada di src/modules/upload
- * .. (1) -> src/modules
- * .. (2) -> src
- * .. (3) -> Root (Lokasi folder uploads)
- */
-const uploadDir = path.join(__dirname, '../../../uploads');
-
-// Buat folder jika belum ada
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Konfigurasi Storage
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir); 
-    },
-    filename: function (req, file, cb) {
-        // Format: timestamp-angkaRandom.jpg agar unik
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = path.extname(file.originalname || '.jpg');
-        cb(null, uniqueSuffix + ext);
-    }
-});
-
-const upload = multer({ storage });
-
-// Middleware Auth
+// Middleware Auth (Pastikan user login sebelum upload)
 router.use(auth);
 
-// Endpoint Upload
+/**
+ * Endpoint: POST /api/upload/image
+ * Deskripsi: Mengunggah gambar langsung ke Cloudinary
+ */
 router.post('/image', upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: 'File tidak ditemukan' });
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'File tidak ditemukan atau format salah' });
+        }
+
+        // URL dari Cloudinary ada di req.file.path
+        const url = req.file.path;
+
+        res.status(201).json({
+            message: 'Upload gambar ke Cloudinary berhasil ☁️',
+            url: url
+        });
+    } catch (error) {
+        console.error("Upload Error:", error);
+        res.status(500).json({ message: 'Gagal memproses gambar' });
     }
-
-    // URL ini yang disimpan di Database (Path Relatif)
-    const url = `/uploads/${req.file.filename}`;
-
-    res.status(201).json({
-        message: 'Upload gambar berhasil',
-        url: url
-    });
 });
 
-// PERBAIKAN: Export sebagai objek agar 'upload' bisa dipakai di edukasi.routes.js
 module.exports = {
     router,
-    upload
+    upload // Tetap export agar bisa dipakai di edukasi.routes.js jika perlu
 };

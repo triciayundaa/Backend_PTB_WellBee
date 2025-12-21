@@ -19,11 +19,6 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// ========================
-// 2. STATIC FOLDER
-// ========================
-// ✅ PENTING: Folder Uploads (Punya Kamu)
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // ========================
 // 3. ROUTES
