@@ -24,7 +24,7 @@ async function sendPushNotification(articleId, judul) {
       notification: {
         channelId: "wellbee_channel_id", // 🔹 Harus sama dengan di MainActivity.kt
         priority: "high",
-        sound: "default"
+        sound: "logo"
       }
     },
     topic: 'new_articles'
