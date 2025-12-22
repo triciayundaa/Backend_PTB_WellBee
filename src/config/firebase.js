@@ -1,14 +1,13 @@
 const admin = require("firebase-admin");
 
-// Debugging: Cek apakah variabel masuk ke sistem Vercel (Lihat di Logs)
 console.log("Variabel FIREBASE_PROJECT_ID:", process.env.FIREBASE_PROJECT_ID);
 
 const serviceAccount = {
   type: "service_account",
-  // Gunakan ENV, jika gagal/kosong gunakan string "notifikasi-wellbe" secara manual
+  
   project_id: process.env.FIREBASE_PROJECT_ID || "notifikasi-wellbe",
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID || "7c963c7aa3cc61a549a353ede9e49612ffc8002e",
-  // Penanganan khusus untuk private key agar baris baru (\n) terbaca benar
+ 
   private_key: process.env.FIREBASE_PRIVATE_KEY 
     ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') 
     : undefined,
@@ -26,9 +25,9 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
-    console.log("✅ Firebase Admin Berhasil Inisialisasi");
+    console.log("Firebase Admin Berhasil Inisialisasi");
   } catch (error) {
-    console.error("❌ Firebase Admin Gagal:", error.message);
+    console.error("Firebase Admin Gagal:", error.message);
   }
 }
 

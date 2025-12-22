@@ -1,54 +1,43 @@
 ﻿const fisikService = require('./fisik.service');
 
-// === TAMBAHAN IMPORTS (WAJIB ADA) ===
-const db = require('../../config/db');       // Buat ambil Token dari Database
-const admin = require('../../config/firebase'); // Buat kirim Notifikasi
-// ====================================
+const db = require('../../config/db');     
+const admin = require('../../config/firebase'); 
 
-// === FUNGSI UPDATE TOKEN (VERSI DEBUG) ===
 const updateFcmToken = async (req, res) => {
     try {
         const userId = req.user.id;
         const { fcm_token } = req.body;
 
-        // 🔍 CCTV 1: Cek apakah data sampai ke sini?
         console.log("=================================");
-        console.log("🔥 REQUEST MASUK: UPDATE TOKEN 🔥");
-        console.log("👤 User ID:", userId);
-        console.log("🎫 Token dari HP:", fcm_token); 
+        console.log("REQUEST MASUK: UPDATE TOKEN");
+        console.log("User ID:", userId);
+        console.log("Token dari HP:", fcm_token); 
 
         if (!fcm_token) {
-            console.log("❌ BAHAYA: Token Kosong/Undefined!");
+            console.log("BAHAYA: Token Kosong/Undefined!");
             return res.status(400).json({ message: "Token tidak boleh kosong" });
         }
 
-        // 🔍 CCTV 2: Eksekusi Database
-        // Kita pakai db.execute atau db.query tanpa [rows] dulu biar aman
-        // Pastikan await ada biar dia nunggu sampai selesai
         await db.query(
             'UPDATE users SET fcm_token = ? WHERE id = ?', 
             [fcm_token, userId]
         );
 
-        console.log("✅ Database Berhasil Diupdate!");
+        console.log("Database Berhasil Diupdate!");
         console.log("=================================");
 
         res.json({ message: "Token HP berhasil diupdate!" });
     } catch (e) {
-        console.log("❌ ERROR PARAH:", e);
+        console.log("ERROR PARAH:", e);
         res.status(500).json({ message: "Server error" });
     }
 };
 
-// ===================
-// SPORT
-// ===================
 const simpanOlahraga = async (req, res) => {
     try {
         const userId = req.user.id;
         const { jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal } = req.body;
 
-        // 1. SIMPAN DATA OLAHRAGA (LOGIKA LAMA)
         const hasil = await fisikService.catatOlahraga({
             userId,
             jenisOlahraga,
@@ -58,23 +47,15 @@ const simpanOlahraga = async (req, res) => {
             tanggal
         });
 
-        // ============================================================
-        // 2. LOGIKA NOTIFIKASI + NAVIGASI (BARU)
-        // ============================================================
         try {
-            // PERBAIKAN: HAPUS .promise()
-            // Cukup db.query atau db.execute (tergantung db.js kamu)
-            // Kita coba hapus .promise() dulu:
             const [users] = await db.query(
                 'SELECT fcm_token FROM users WHERE id = ?', 
                 [userId]
             );
 
-            // B. Cek Token
             if (users.length > 0 && users[0].fcm_token) {
                 const tokenHP = users[0].fcm_token;
 
-                // C. Kirim Notif dengan "DATA NAVIGASI"
                 await admin.messaging().send({
                     token: tokenHP,
                     notification: {
@@ -82,7 +63,7 @@ const simpanOlahraga = async (req, res) => {
                         body: `Mantap! Kamu sudah olahraga ${jenisOlahraga} selama ${durasiMenit} menit.`
                     },
                     data: {
-                        target_screen: "physical_health", // Kode rahasia
+                        target_screen: "physical_health", 
                         click_action: "FLUTTER_NOTIFICATION_CLICK" 
                     }
                 });
@@ -91,16 +72,13 @@ const simpanOlahraga = async (req, res) => {
         } catch (notifError) {
             console.log("⚠️ Gagal kirim notif:", notifError.message);
         }
-        // ============================================================
 
         res.status(201).json({ message: "Sport saved", data: hasil });
     } catch (e) {
-        console.error(e); // Tambahkan log error biar gampang debugging
+        console.error(e); 
         res.status(500).json({ message: "Server error" });
     }
 };
-
-// ... (KODINGAN KE BAWAHNYA BIARKAN SAMA SEPERTI YANG LAMA: getRiwayatOlahraga, Sleep, Weight, dll) ...
 
 const getRiwayatOlahraga = async (req, res) => {
     const userId = req.user.id;
@@ -113,7 +91,7 @@ const getRiwayatOlahraga = async (req, res) => {
         jenisOlahraga: row.jenisOlahraga,
         durasiMenit: row.durasiMenit,
         kaloriTerbakar: row.kaloriTerbakar,
-        tanggal: row.tanggal,      // ← FIX MUNCUL TANGGAL
+        tanggal: row.tanggal,     
         foto: row.foto
     }));
 
@@ -160,10 +138,6 @@ const getWeeklySport = async (req, res) => {
   }
 };
 
-
-// ===================
-// SLEEP
-// ===================
 const simpanTidur = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -236,9 +210,6 @@ const getWeeklySleep = async (req, res) => {
   }
 };
 
-// ===================
-// WEIGHT
-// ===================
 const simpanWeight = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -271,7 +242,6 @@ const updateWeight = async (req, res) => {
 };
 
 module.exports = {
-    // SPORT
     simpanOlahraga,
     getRiwayatOlahraga,
     hapusOlahraga,
@@ -279,14 +249,12 @@ module.exports = {
     getWeeklySport,
     updateFcmToken,
 
-    // SLEEP
     simpanTidur,
     getRiwayatTidur,
     hapusTidur,
     updateTidur,
     getWeeklySleep,
 
-    // WEIGHT
     simpanWeight,
     getRiwayatWeight,
     hapusWeight,

@@ -4,9 +4,6 @@ const getRoot = (req, res) => {
   res.json({ message: "Mental module root" });
 };
 
-// =========================
-// MOOD
-// =========================
 const simpanMood = async (req, res) => {
   try {
     const { userId, emoji, moodLabel, moodScale, tanggal } = req.body;
@@ -81,9 +78,6 @@ const deleteMood = async (req, res) => {
   }
 };
 
-// =========================
-// STATS (GRAFIK)
-// =========================
 const getWeeklyStats = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -104,12 +98,8 @@ const getMonthlyStats = async (req, res) => {
   }
 };
 
-// =========================
-// JURNAL
-// =========================
 const simpanJurnal = async (req, res) => {
   try {
-    // [UPDATE] Menambahkan 'audio' agar Voice Note tersimpan
     const { userId, triggerLabel, isiJurnal, foto, audio, tanggal } = req.body;
 
     if (!userId || !isiJurnal) {
@@ -124,7 +114,7 @@ const simpanJurnal = async (req, res) => {
       triggerLabel,
       isiJurnal,
       foto,
-      audio, // Teruskan audio ke service
+      audio,
       tanggal
     });
 
@@ -169,7 +159,6 @@ const getJournalDetail = async (req, res) => {
 const updateJournal = async (req, res) => {
   try {
     const { id } = req.params;
-    // [UPDATE] Menambahkan 'audio' untuk update
     const { triggerLabel, isiJurnal, foto, audio, tanggal } = req.body;
 
     const result = await mentalService.updateJournal({
@@ -177,7 +166,7 @@ const updateJournal = async (req, res) => {
       triggerLabel,
       isiJurnal,
       foto,
-      audio, // Teruskan audio ke service
+      audio, 
       tanggal
     });
 

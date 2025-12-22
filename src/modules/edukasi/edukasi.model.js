@@ -1,4 +1,3 @@
-// src/modules/edukasi/edukasi.model.js
 const pool = require('../../config/db');
 
 async function query(sql, params = []) {
@@ -11,15 +10,9 @@ async function query(sql, params = []) {
   }
 }
 
-/* =====================================================================
- *  ARTIKEL PUBLIK (static + user uploaded)
- * ===================================================================== */
-// Di edukasi.model.js
-
 async function getPublicArticles() {
   return query(`
     SELECT * FROM (
-        /* 1. Ambil Artikel dari Admin (Tabel edukasi_artikel) */
         SELECT 
           a.id, 
           a.judul, 
@@ -36,7 +29,6 @@ async function getPublicArticles() {
 
         UNION ALL
 
-        /* 2. Ambil Artikel dari User (Tabel user_artikel) */
         SELECT
           ua.id, 
           ua.judul, 
@@ -57,13 +49,6 @@ async function getPublicArticles() {
   `);
 }
 
-/* =====================================================================
- *  ARTIKEL MILIK USER
- * ===================================================================== */
-/* =====================================================================
- *  ARTIKEL MILIK USER
- *  kirim juga authorName (username di tabel users)
- * ===================================================================== */
 async function getUserArticles(userId) {
   return query(
     `
@@ -132,10 +117,6 @@ async function insertUserArticle({
   return result.insertId;
 }
 
-/**
- * Update artikel user secara dinamis (judul/isi/kategori/dll)
- * data datang dari service: { title, content, category, read_time, tag, gambar_url }
- */
 async function updateUserArticle(userId, articleId, data) {
   const fields = [];
   const values = [];
@@ -177,7 +158,6 @@ async function updateUserArticle(userId, articleId, data) {
   const result = await query(sql, values);
   if (result.affectedRows === 0) return null;
 
-  // ambil data terbaru + nama penulis
   const rows = await query(
     `
       SELECT
@@ -223,13 +203,9 @@ async function deleteUserArticle(userId, articleId) {
   );
 }
 
-/* =====================================================================
- * BOOKMARKS (PERBAIKAN UTAMA)
- * ===================================================================== */
 async function getBookmarks(userId) {
   return query(
     `
-    /* 1. Ambil Bookmark dari Artikel Statis */
     SELECT
       b.id            AS bookmarkId,
       b.artikelId,
@@ -249,7 +225,6 @@ async function getBookmarks(userId) {
 
     UNION ALL
 
-    /* 2. Ambil Bookmark dari Artikel User (Hanya yang statusnya 'uploaded') */
     SELECT
       b.id            AS bookmarkId,
       b.artikelId,

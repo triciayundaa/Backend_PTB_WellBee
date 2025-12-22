@@ -1,4 +1,3 @@
-// src/config/initTables.js
 const pool = require('./db');
 
 async function createTables() {
@@ -6,7 +5,6 @@ async function createTables() {
     try {
         connection = await pool.getConnection();
 
-        // 1. TABEL USERS
         await connection.query(`
             CREATE TABLE IF NOT EXISTS users (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -19,7 +17,6 @@ async function createTables() {
             );
         `);
 
-        // 2. TABEL FISIK (OLAHRAGA, TIDUR, BERAT BADAN)
         await connection.query(`
             CREATE TABLE IF NOT EXISTS fisik_olahraga (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -59,7 +56,6 @@ async function createTables() {
             );
         `);
 
-        // 3. TABEL MENTAL (MOOD & JURNAL)
         await connection.query(`
             CREATE TABLE IF NOT EXISTS mental_mood (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -89,7 +85,6 @@ async function createTables() {
             );
         `);
 
-        // 4. TABEL EDUKASI (ARTIKEL & BOOKMARK)
         await connection.query(`
             CREATE TABLE IF NOT EXISTS edukasi_artikel (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -98,7 +93,7 @@ async function createTables() {
                 kategori VARCHAR(100),
                 tag VARCHAR(100),
                 waktu_baca VARCHAR(50),
-                gambar_url LONGTEXT, -- 🔹 Diubah agar konsisten bisa menampung base64
+                gambar_url LONGTEXT,
                 tanggal DATE DEFAULT (CURRENT_DATE)
             );
         `);
@@ -112,7 +107,7 @@ async function createTables() {
                 kategori VARCHAR(100),
                 waktu_baca VARCHAR(50),
                 tag VARCHAR(100),
-                gambar_url LONGTEXT, -- 🔹 Diubah menjadi LONGTEXT
+                gambar_url LONGTEXT, 
                 status ENUM('draft', 'uploaded', 'canceled') DEFAULT 'draft',
                 tanggal_upload DATE DEFAULT (CURRENT_DATE),
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -121,12 +116,11 @@ async function createTables() {
             );
         `);
 
-        // 🔹 MODIFIKASI: Jalankan ALTER TABLE setelah dipastikan tabel user_artikel sudah ada
         try {
             await connection.query("ALTER TABLE user_artikel MODIFY COLUMN gambar_url LONGTEXT;");
-            console.log("🛠️ Kolom gambar_url dipastikan LONGTEXT");
+            console.log("Kolom gambar_url dipastikan LONGTEXT");
         } catch (alterErr) {
-            console.log("ℹ️ Kolom gambar_url sudah LONGTEXT atau sedang diproses.");
+            console.log("Kolom gambar_url sudah LONGTEXT atau sedang diproses.");
         }
 
         await connection.query(`
@@ -141,10 +135,10 @@ async function createTables() {
             );
         `);
 
-        console.log("✔ Semua tabel berhasil dibuat/siap dipakai");
+        console.log("Semua tabel berhasil dibuat/siap dipakai");
 
     } catch (err) {
-        console.error("❌ Gagal membuat tabel:", err);
+        console.error("Gagal membuat tabel:", err);
     } finally {
         if (connection) connection.release();
     }

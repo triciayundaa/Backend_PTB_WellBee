@@ -1,4 +1,3 @@
-// src/config/db.js
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
@@ -12,7 +11,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   ssl: {
-    rejectUnauthorized: false // Wajib untuk koneksi ke Aiven
+    rejectUnauthorized: false 
   }
 });
 

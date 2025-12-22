@@ -1,7 +1,6 @@
-﻿// src/modules/edukasi/edukasi.controller.js
-const service = require('./edukasi.service');
+﻿const service = require('./edukasi.service');
 const { KATEGORI_LIST } = require('./edukasi.constants');
-const admin = require('../../config/firebase'); // 🔹 Tambahkan import ini
+const admin = require('../../config/firebase'); 
 
 function handleError(res, err, label) {
   console.error(`Error ${label}:`, err);
@@ -9,7 +8,6 @@ function handleError(res, err, label) {
   res.status(status).json({ message: err.message || 'Internal server error' });
 }
 
-// 🔹 Fungsi Helper untuk kirim notifikasi FCM (DIUPDATE)
 async function sendPushNotification(articleId, judul) {
   const payload = {
     notification: {
@@ -18,11 +16,11 @@ async function sendPushNotification(articleId, judul) {
     },
     data: {
       articleId: String(articleId),
-      target_screen: "education_detail" // 🔹 Tambahan agar MainActivity tahu arah navigasinya
+      target_screen: "education_detail" 
     },
     android: {
       notification: {
-        channelId: "wellbee_channel_id", // 🔹 Harus sama dengan di MainActivity.kt
+        channelId: "wellbee_channel_id", 
         priority: "high",
         sound: "logo"
       }
@@ -38,7 +36,6 @@ async function sendPushNotification(articleId, judul) {
   }
 }
 
-/** 0) GET /api/edukasi/categories */
 async function getCategories(req, res) {
   try {
     res.json({ categories: KATEGORI_LIST });
@@ -47,7 +44,6 @@ async function getCategories(req, res) {
   }
 }
 
-/** 1) GET /api/edukasi/articles */
 async function getPublicArticles(req, res) {
   try {
     const articles = await service.getPublicArticles();
@@ -57,7 +53,6 @@ async function getPublicArticles(req, res) {
   }
 }
 
-/** 2) GET /api/edukasi/my-articles */
 async function getMyArticles(req, res) {
   try {
     const userId = req.user.id;
@@ -68,14 +63,12 @@ async function getMyArticles(req, res) {
   }
 }
 
-/** 3) POST /api/edukasi/my-articles */
 async function createMyArticle(req, res) {
   try {
     const userId = req.user.id;
-    const { judul, status } = req.body; // Ambil judul dan status
+    const { judul, status } = req.body; 
     const articleId = await service.createMyArticle(userId, req.body);
 
-    // 🔹 Pemicu Notifikasi jika status langsung 'uploaded'
     if (status === 'uploaded') {
       sendPushNotification(articleId, judul).catch(err => console.error("FCM Error:", err));
     }
@@ -86,7 +79,6 @@ async function createMyArticle(req, res) {
   }
 }
 
-/** 4) PUT /api/edukasi/my-articles/:id */
 async function updateMyArticle(req, res) {
   try {
     const userId = req.user.id;
@@ -105,7 +97,6 @@ async function updateMyArticle(req, res) {
   }
 }
 
-/** 5) DELETE /api/edukasi/my-articles/:id */
 async function removeMyArticle(req, res) {
   try {
     const userId = req.user.id;
@@ -117,7 +108,6 @@ async function removeMyArticle(req, res) {
   }
 }
 
-/** 6) GET /api/edukasi/bookmarks */
 async function getBookmarks(req, res) {
   try {
     const userId = req.user.id;
@@ -128,7 +118,6 @@ async function getBookmarks(req, res) {
   }
 }
 
-/** 7) POST /api/edukasi/bookmarks */
 async function addBookmark(req, res) {
   try {
     const userId = req.user.id;
@@ -143,7 +132,6 @@ async function addBookmark(req, res) {
   }
 }
 
-/** 8) DELETE /api/edukasi/bookmarks/:id */
 async function deleteBookmark(req, res) {
   try {
     const userId = req.user.id;
@@ -155,7 +143,6 @@ async function deleteBookmark(req, res) {
   }
 }
 
-/** 9) PATCH /api/edukasi/bookmarks/:id/read */
 async function markBookmarkAsRead(req, res) {
   try {
     const userId = req.user.id;
@@ -167,7 +154,6 @@ async function markBookmarkAsRead(req, res) {
   }
 }
 
-/** 10) PATCH /api/edukasi/my-articles/:id/status */
 async function updateMyArticleStatus(req, res) {
   try {
     const userId = req.user.id;
@@ -180,7 +166,6 @@ async function updateMyArticleStatus(req, res) {
 
     const articleData = await service.updateMyArticleStatus(userId, articleId, status);
 
-    // 🔹 Pemicu Notifikasi jika status diubah menjadi 'uploaded'
     if (status === 'uploaded') {
       sendPushNotification(articleId, articleData.judul).catch(err => console.error("FCM Error:", err));
     }

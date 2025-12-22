@@ -1,9 +1,5 @@
 const db = require("../../config/db");
 
-// =========================
-// MOOD (tabel: mental_mood)
-// kolom tersedia: userId, emoji, moodLabel, moodScale, tanggal
-// =========================
 const MentalModel = {
   createMood: async ({ userId, emoji, moodLabel, moodScale, tanggal }) => {
     const query = `
@@ -51,7 +47,6 @@ const MentalModel = {
     return result;
   },
 
-  // Statistik mingguan: 7 hari terakhir (avg moodScale per hari)
   getWeeklyStats: async (userId) => {
     const query = `
       SELECT tanggal, AVG(moodScale) AS avgMood
@@ -64,7 +59,6 @@ const MentalModel = {
     return rows;
   },
 
-  // Statistik bulanan: 30 hari terakhir (avg moodScale per hari)
   getMonthlyStats: async (userId) => {
     const query = `
       SELECT tanggal, AVG(moodScale) AS avgMood
@@ -77,10 +71,6 @@ const MentalModel = {
     return rows;
   },
 
-  // =========================
-  // JURNAL (tabel: mental_jurnal)
-  // kolom: userId, triggerLabel, isiJurnal, foto, tanggal
-  // =========================
   createJournal: async ({ userId, triggerLabel, isiJurnal, foto, tanggal }) => {
     const query = `
       INSERT INTO mental_jurnal (userId, triggerLabel, isiJurnal, foto, tanggal)

@@ -7,9 +7,6 @@ const clampInt = (v, min, max) => {
 };
 
 const mentalService = {
-  // =========================
-  // MOOD
-  // =========================
   catatMood: async ({ userId, emoji, moodLabel, moodScale, tanggal, triggerLabel, note, foto }) => {
     if (!userId) throw new Error("userId wajib diisi");
     if (!emoji || !moodLabel || moodScale == null) throw new Error("emoji, moodLabel, moodScale wajib diisi");
@@ -78,14 +75,10 @@ const mentalService = {
     return await MentalModel.getMonthlyStats(userId);
   },
 
-  // =========================
-  // JURNAL
-  // =========================
   simpanJurnal: async ({ userId, triggerLabel, isiJurnal, foto, audio, tanggal }) => {
     if (!userId) throw new Error("userId wajib diisi");
     if (!isiJurnal) throw new Error("isiJurnal wajib diisi");
 
-    // [UPDATE] audio diteruskan ke Model
     const result = await MentalModel.createJournal({
       userId,
       triggerLabel,
@@ -110,7 +103,6 @@ const mentalService = {
 
   updateJournal: async ({ id, triggerLabel, isiJurnal, foto, audio, tanggal }) => {
     if (!id) throw new Error("id wajib diisi");
-    // [UPDATE] audio diteruskan ke Model
     const result = await MentalModel.updateJournal({
       id,
       triggerLabel,

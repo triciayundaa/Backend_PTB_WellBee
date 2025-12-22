@@ -5,7 +5,6 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'secret123';
 const JWT_EXPIRES = process.env.JWT_EXPIRES || '7d';
 
-// --- FUNGSI UTILITY ---
 async function findUserByUsername(username) {
     const [rows] = await pool.query('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
     return rows[0];
@@ -25,7 +24,6 @@ async function createUser({ username, email, passwordHash, phone }) {
     return rows[0];
 }
 
-// --- FUNGSI UTAMA (EXPORTS) ---
 exports.registerUser = async ({ username, email, password, phone }) => { 
     const existing = await findUserByUsername(username);
     if (existing) {
@@ -54,20 +52,17 @@ exports.loginUser = async ({ email, password }) => {
     return { token, user };
 };
 
-// Tambahkan ini agar controller tetap bersih
 exports.getUserById = async (id) => {
     const [rows] = await pool.query('SELECT id, username, email, phone FROM users WHERE id = ?', [id]);
     return rows[0];
 };
 
 exports.resetUserPasswordSimple = async ({ email, newPassword }) => {
-    // Gunakan trim untuk menghapus spasi yang tidak sengaja terketik di HP
     const cleanEmail = email.trim(); 
 
     const [rows] = await pool.query('SELECT id FROM users WHERE email = ? LIMIT 1', [cleanEmail]);
 
     if (rows.length === 0) {
-        // Jika ini muncul, berarti email 'cleanEmail' benar-benar tidak ada di kolom email tabel users
         const err = new Error('Email tidak ditemukan di database');
         err.status = 404;
         throw err;

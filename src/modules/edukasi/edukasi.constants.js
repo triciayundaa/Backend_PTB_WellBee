@@ -1,4 +1,3 @@
-// src/modules/edukasi/edukasi.constants.js
 const KATEGORI_LIST = [
   'Kesehatan Mental',
   'Kesehatan Fisik',

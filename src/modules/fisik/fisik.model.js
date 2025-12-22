@@ -1,12 +1,7 @@
 const db = require('../../config/db');
 
 const FisikModel = {
-    
-    // ===========================================
-    // 🔥 BAGIAN PENTING (DIPERBAIKI)
-    // ===========================================
     getSportByRange: async (userId, start, end) => {
-        // Kita gunakan db.execute agar konsisten
         const query = `
             SELECT WEEKDAY(tanggal) AS wd, SUM(durasiMenit) AS total
             FROM fisik_olahraga
@@ -19,8 +14,8 @@ const FisikModel = {
             const [rows] = await db.execute(query, [userId, start, end]);
             return rows;
         } catch (error) {
-            console.error("❌ ERROR SQL WEEKLY:", error);
-            return []; // Return array kosong jika error agar tidak crash
+            console.error("ERROR SQL WEEKLY:", error);
+            return []; 
         }
     },
 
@@ -36,14 +31,11 @@ const FisikModel = {
             const [rows] = await db.execute(query, [userId, start, end]);
             return rows;
         } catch (error) {
-            console.error("❌ ERROR SQL WEEKLY SLEEP:", error);
+            console.error("ERROR SQL WEEKLY SLEEP:", error);
             return [];
         }
     },
 
-    // ===================
-    // SPORT (Create, Get, Delete, Update)
-    // ===================
     createSport: async ({ userId, jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal }) => {
         const query = `
             INSERT INTO fisik_olahraga (userId, jenisOlahraga, durasiMenit, kaloriTerbakar, foto, tanggal)
@@ -79,9 +71,6 @@ const FisikModel = {
         return result;
     },
 
-    // ===================
-    // SLEEP
-    // ===================
     createSleep: async ({ userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal }) => {
         const query = `
             INSERT INTO fisik_sleep (userId, jamTidur, jamBangun, durasiTidur, kualitasTidur, tanggal) 
@@ -117,9 +106,7 @@ const FisikModel = {
         return rows;
     },
 
-    // ===================
-    // WEIGHT
-    // ===================
+    
     createWeight: async ({ userId, beratBadan, tinggiBadan, bmi, kategori, tanggal }) => {
         const query = `
             INSERT INTO fisik_weight (userId, beratBadan, tinggiBadan, bmi, kategori, tanggal)

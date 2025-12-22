@@ -17,7 +17,6 @@ exports.login = async (req, res) => {
         const { email, password } = req.body; 
         if (!email || !password) return res.status(400).json({ message: 'email and password required' });
 
-        // Kita butuh User object (ID, dll) untuk Android
         const { token, user } = await authService.loginUser({ email, password });
 
         return res.json({ 
@@ -36,7 +35,6 @@ exports.login = async (req, res) => {
 
 exports.getMe = async (req, res) => {
     try {
-        // req.user didapat dari auth.middleware.js
         const userId = req.user.id;
         const user = await authService.getUserById(userId);
 

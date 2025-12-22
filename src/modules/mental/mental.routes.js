@@ -4,23 +4,14 @@ const controller = require("./mental.controller");
 
 router.get("/", controller.getRoot);
 
-// =====================
-// MOOD - STATISTICS
-// =====================
 router.get("/mood/stats/weekly/:userId", controller.getWeeklyStats);
 router.get("/mood/stats/monthly/:userId", controller.getMonthlyStats);
 
-// =====================
-// MOOD - CRUD
-// =====================
 router.post("/mood", controller.simpanMood);
 router.get("/mood/:userId", controller.getMoodHistory);
 router.put("/mood/:id", controller.updateMood);
 router.delete("/mood/:id", controller.deleteMood);
 
-// =====================
-// JURNAL - CRUD
-// =====================
 router.post("/jurnal", controller.simpanJurnal);
 router.get("/jurnal/:userId", controller.getJournals);
 router.get("/jurnal/detail/:id", controller.getJournalDetail);

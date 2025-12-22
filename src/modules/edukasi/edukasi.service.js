@@ -14,7 +14,6 @@ async function getMyArticles(userId) {
   return model.getUserArticles(userId);
 }
 
-// 🔹 PERBAIKAN: Menjamin status 'uploaded' agar tampil di Education Screen
 async function createMyArticle(userId, payload) {
   const {
     judul,
@@ -22,7 +21,7 @@ async function createMyArticle(userId, payload) {
     kategori,
     waktu_baca, 
     tag,
-    gambar_url, // Berisi Base64 dari Android
+    gambar_url, 
     status
   } = payload;
 
@@ -30,7 +29,6 @@ async function createMyArticle(userId, payload) {
     throw makeError('Judul dan isi wajib diisi', 400);
   }
 
-  // Jika status kosong dari Android, paksa jadi 'uploaded' agar muncul di halaman Publik
   const finalStatus = status || 'uploaded';
 
   return model.insertUserArticle({
@@ -42,11 +40,10 @@ async function createMyArticle(userId, payload) {
     tag,
     status: finalStatus,
     tanggalUpload: new Date(),
-    gambarUrl: gambar_url // Pastikan model menerima properti ini
+    gambarUrl: gambar_url 
   });
 }
 
-// 🔹 PERBAIKAN: Sinkronisasi nama properti gambar_url
 async function updateMyArticle(userId, articleId, payload, file) {
   const { judul, isi, kategori, waktu_baca, tag } = payload;
 
@@ -62,11 +59,10 @@ async function updateMyArticle(userId, articleId, payload, file) {
     tag: tag
   };
 
-  // 🔹 PERBAIKAN LOGIKA: Pastikan menggunakan key 'gambar_url' (dengan underscore)
   if (file) {
-    dataToUpdate.gambar_url = file.path; // Dari Cloudinary
+    dataToUpdate.gambar_url = file.path; 
   } else if (payload.gambar_url) {
-    dataToUpdate.gambar_url = payload.gambar_url; // Tetap gunakan URL lama jika ada
+    dataToUpdate.gambar_url = payload.gambar_url; 
   }
 
   const updated = await model.updateUserArticle(userId, articleId, dataToUpdate);
